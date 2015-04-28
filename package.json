@@ -1,0 +1,21 @@
+{
+  "name": "rmutt",
+  "version": "1.0.0",
+  "description": "generates random text from context-free grammars",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": "",
+  "author": "Ricardo Stuven <rstuven@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "^3.7.0",
+    "pegjs": "^0.8.0"
+  },
+  "devDependencies": {
+    "chai": "^2.3.0",
+    "coffee-script": "^1.9.2",
+    "mocha": "^2.2.4"
+  }
+}
