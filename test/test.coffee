@@ -1,5 +1,5 @@
 require 'coffee-script'
-rmutt = require '..'
+rmutt = require '../lib/rmutt2'
 expect = require('chai').expect
 
 describe 'rmutt', ->
@@ -37,7 +37,7 @@ describe 'rmutt', ->
 
 describe 'rmutt', ->
 
-  it 't0', ->
+  it '_t0', ->
     source = """
     meta-vp:
     (iv: "ate") (prep: "with") vp,
@@ -48,9 +48,9 @@ describe 'rmutt', ->
     obj: "you", "me";
     adv: "patiently", "impatiently";
     """
-    expect(rmutt.generate source, index: 0).to.equal 'ate patiently with you'
-    expect(rmutt.generate source, index: 10).to.equal 'yelled impatiently at me'
-    expect(rmutt.generate source, index: 20).to.equal 'waited patiently for me'
+    expect(rmutt.generate source, len: 4, index: 0).to.equal 'yelled patiently at you'
+    expect(rmutt.generate source, len: 4, index: 32).to.equal 'ate patiently with you'
+    expect(rmutt.generate source, len: 4, index: 64).to.equal 'waited impatiently with me'
 
   it 't0', ->
     source = """
@@ -62,7 +62,7 @@ describe 'rmutt', ->
     position: "the butler", "the chauffeur";
     """
     expect(rmutt.generate source, index: 0).to.equal "Dr. Nancy McPhee said, 'I am Dr. Nancy McPhee, so nice to meet you.'"
-    expect(rmutt.generate source, index: 1).to.equal "the butler said, 'I am the butler, so nice to meet you.'"
+    expect(rmutt.generate source, index: 1).to.equal "the chauffeur said, 'I am the chauffeur, so nice to meet you.'"
 
   it 't1 - random selection', ->
     source = """
@@ -92,10 +92,9 @@ describe 'rmutt', ->
     t: "a" ("b"|("c"|"d"));
     """
     source = rmutt.parse source # optimization
-    expect(rmutt.generate source, index: 0).to.equal 'ab'
-    expect(rmutt.generate source, index: 1).to.equal 'ac'
-    expect(rmutt.generate source, index: 2).to.equal 'ab'
-    expect(rmutt.generate source, index: 3).to.equal 'ad'
+    expect(rmutt.generate source, len: 2, index: 1).to.equal 'ab'
+    expect(rmutt.generate source, len: 2, index: 2).to.equal 'ac'
+    expect(rmutt.generate source, len: 2, index: 3).to.equal 'ad'
 
   it 't5 - repetition', ->
     source = """
@@ -103,32 +102,17 @@ describe 'rmutt', ->
     """
     source = rmutt.parse source # optimization
     results = [
-      'aabbbcddddde'
-      'aabbcddddde'
-      'aabbbddddde'
-      'aabbddddde'
-      'aabbbcdddde'
-      'aabbcdddde'
-      'aabbbdddde'
-      'aabbdddde'
-      'aabbbcddde'
-      'aabbcddde'
-      'aabbbddde'
-      'aabbddde'
-      'aabbbcdde'
-      'aabbcdde'
-      'aabbbdde'
-      'aabbdde'
-      'aabbbcde'
-      'aabbcde'
-      'aabbbde'
-      'aabbde'
-      'aabbbce'
-      'aabbce'
-      'aabbbe'
       'aabbe'
+      'aabbbcdee'
+      'aabbddeee'
+      'aabbbcdddeeee'
+      'aabbddddeeeee'
+      'aabbbcddddde'
+      'aabbee'
+      'aabbbcdeee'
+      'aabbddeeee'
     ]
-    for result, index in results.reverse()
+    for result, index in results
       expect(rmutt.generate source, index: index).to.equal result
 
   it 't6 - embedded definitions', ->
@@ -217,10 +201,10 @@ describe 'rmutt', ->
     s: "hello there " o;
     o: "beautiful" | "Mr. Smarty Pants";
     """
-    expect(rmutt.generate source, index: 0).to.equal "oatmeal starts with the letter 'O', beautiful"
-    expect(rmutt.generate source, index: 1).to.equal "ogre starts with the letter 'O', beautiful"
-    expect(rmutt.generate source, index: 2).to.equal "oatmeal starts with the letter 'O', Mr. Smarty Pants"
-    expect(rmutt.generate source, index: 3).to.equal "ogre starts with the letter 'O', Mr. Smarty Pants"
+    expect(rmutt.generate source, len: 2, index: 0).to.equal "oatmeal starts with the letter 'O', beautiful"
+    expect(rmutt.generate source, len: 2, index: 2).to.equal "oatmeal starts with the letter 'O', Mr. Smarty Pants"
+    expect(rmutt.generate source, len: 2, index: 1).to.equal "ogre starts with the letter 'O', beautiful"
+    expect(rmutt.generate source, len: 2, index: 3).to.equal "ogre starts with the letter 'O', Mr. Smarty Pants"
 
   it 't12 - probability multipliers', ->
     source = """
@@ -236,10 +220,14 @@ describe 'rmutt', ->
     a: ("a"|"b")>("a"%("0"|"zero") "b"%("1"|"one"));
     """
     source = rmutt.parse source # optimization
-    expect(rmutt.generate source, index: 0).to.equal '0'
-    expect(rmutt.generate source, index: 1).to.equal '1'
-    expect(rmutt.generate source, index: 2).to.equal 'zero'
-    expect(rmutt.generate source, index: 3).to.equal 'one'
+    expect(rmutt.generate source, index: 0, len: 3).to.equal '0'
+    expect(rmutt.generate source, index: 1, len: 3).to.equal 'zero'
+    expect(rmutt.generate source, index: 2, len: 3).to.equal '0'
+    expect(rmutt.generate source, index: 3, len: 3).to.equal 'zero'
+    expect(rmutt.generate source, index: 4, len: 3).to.equal '1'
+    expect(rmutt.generate source, index: 5, len: 3).to.equal '1'
+    expect(rmutt.generate source, index: 6, len: 3).to.equal 'one'
+    expect(rmutt.generate source, index: 7, len: 3).to.equal 'one'
 
   it 't14 - includes', ->
     source = """
@@ -253,32 +241,24 @@ describe 'rmutt', ->
     r: ((a="foo") a ($b="bar")) b " "
     ((c:"foo"|"bar") c ($d:"baz"|"quux") d) d "\\n";
     """
-    source = rmutt.parse source # optimization
-    expect(rmutt.generate source, index: 0).to.equal 'foobar foobazbaz\n'
-    expect(rmutt.generate source, index: 1).to.equal 'foobar barbazbaz\n'
-    expect(rmutt.generate source, index: 2).to.equal 'foobar fooquuxbaz\n'
-    expect(rmutt.generate source, index: 3).to.equal 'foobar barquuxbaz\n'
-    expect(rmutt.generate source, index: 4).to.equal 'foobar foobazquux\n'
-    expect(rmutt.generate source, index: 5).to.equal 'foobar barbazquux\n'
-    expect(rmutt.generate source, index: 6).to.equal 'foobar fooquuxquux\n'
-    expect(rmutt.generate source, index: 7).to.equal 'foobar barquuxquux\n'
+    source = rmutt.parse source # optimizon
 
-  it.skip 't16 - positional arguments', ->
-    # source = """
-    # foo: (bar["thing","blah","foo"] "ie"){20} "\\n";
-    # bar[a,b,c]: "i like " _1 " and " b " and " c;
-    # """
-    # foo: bar["thing","blah","foo"];
+    expect(rmutt.generate source, len: 2, index: 0).to.equal 'foobar foobazquux\n'
+    expect(rmutt.generate source, len: 2, index: 1).to.equal 'foobar barbazquux\n'
+    expect(rmutt.generate source, len: 2, index: 2).to.equal 'foobar fooquuxquux\n'
+    expect(rmutt.generate source, len: 2, index: 3).to.equal 'foobar barquuxquux\n'
+    expect(rmutt.generate source, len: 2, index: 4).to.equal 'foobar foobazbaz\n'
 
+  it 't16 - positional arguments', ->
     source = """
-    foo: bar["thing","blah","foo"];
-    bar[a,b,c]: "i like " a " and " b " and " c;
+    foo: (bar["thing","blah","foo"] "ie"){20};
+    bar[a,b,c]: "i like " _1 " and " b " and " c;
     """
     expect(rmutt.generate source, index: 0, logRules: true).to.equal 'i like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooie'
 
   # more examples of non-local: math.rm, sva.rm
   # more examples of global: turing.rm, SecomPR.rm
-  it.skip 't17 - scope qualifiers: non-local', ->
+  it 't17 - scope qualifiers: non-local', ->
     source = """
     tests:
      local.top " "
@@ -310,6 +290,7 @@ describe 'rmutt', ->
     B: (X="2") C X;
     C: ($X="3") X;
     """
+
     expect(rmutt.generate source, index: 0).to.equal '321local.X 2213 331non_local.X '
 
   it 't18 - imports', ->
