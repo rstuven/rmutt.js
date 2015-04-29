@@ -33,7 +33,7 @@ var result = rmutt.generate(grammar);
 [rmutt](http://sourceforge.net/projects/rmutt/) by Joe Futrelle,
 which in turn is modeled after Andrew C. Bulhak's late, great
 [Dada Engine](http://dev.null.org/dadaengine/) which he used
-to write the hilarious [Postmodern Thesis Generator](https://en.wikipedia.org/wiki/Postmodernism_Generator).
+to write the hilarious [Postmodernism Generator](https://en.wikipedia.org/wiki/Postmodernism_Generator).
 
 The original **rmutt** was named after Marcel Duchamp's alter-ego Richard Mutt, who is responsible for the "urinal" ready-made, an infamous dadaist art prank. **rmutt** is not to be confused with the UNIX mail-reader [mutt](http://www.mutt.org/).
 

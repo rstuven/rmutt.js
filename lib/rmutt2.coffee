@@ -7,33 +7,28 @@ jsStringEscape = require 'js-string-escape'
 grammar = fs.readFileSync __dirname + '/rmutt.pegjs', 'utf8'
 parser = peg.buildParser grammar
 
-exports.parse = (source) ->
+exports.compile = (source) ->
   [rules, includes] = parse source
   doIncludes rules, includes
-  compile rules
+
+  compiled = new Function '$config', transpile rules
+
+  # console.log compiled.toString()
+
+  compiled
 
 exports.generate = (source, config) ->
   config ?= {}
 
   if typeof source is 'string'
-    compiled = exports.parse source
-  else
-    compiled = [].slice.apply source
+    compiled = exports.compile source
+  else if typeof source is 'function'
+    compiled = source
 
-  compiled.push '$config = ', JSON.stringify(config), ';\n'
-  compiled.push '$main();\n'
-  output = eval compiled.join ''
-  output
+  compiled config
 
-
-compile = (rules) ->
+transpile = (rules) ->
   # console.dir rules, colors: true, depth:10
-
-  pushJoin = (res, join, array) ->
-    array.forEach (item, index) ->
-      res.push join if index > 0
-      [].push.apply res, item
-    res
 
   runtime =
 
@@ -66,19 +61,10 @@ compile = (rules) ->
       return name
 
     choose: (terms) ->
-      if $config.index? and not $config.len?
-        index = $config.index % terms
-      else if $config.index? and $config.len?
-        $config.bc ?= Math.pow(2, $config.len) - 1
-        $config.fac ?= 1 + parseInt($config.index / ($config.bc+1))
-        $config.res ?= $config.bc - ($config.index % ($config.bc + 1) )
-        $config.x ?= 0
-        x = $config.fac * ( (($config.bc - $config.res) % 2))
-        $config.res = parseInt($config.res / 2)
-        index = x % terms
-        $config.x++
-        if ($config.x % $config.bc) is 0
-          $config.res = null
+      if $config.oracle?
+        $config.terms = terms
+        index = $config.oracle % terms
+        $config.oracle = Math.floor $config.oracle / terms
       else
         index = parseInt(terms * Math.random())
 
@@ -136,6 +122,41 @@ compile = (rules) ->
           res = (v) -> fn nonClosure v
       res
 
+  assignment = (rule, evalued) ->
+    scope = switch rule.scope
+      when 'local' then 'l'
+      when 'global' then 'g'
+      else '^'
+    [
+      '$assign("'
+      scope
+      '", s, "'
+      rule.name
+      '", '
+    ]
+    .concat evalued
+    .concat ')'
+
+  ruleDef = (rule) ->
+    res = []
+    .concat '$rule(function(s) { \nreturn '
+    .concat evalRule rule.expr
+    .concat ';\n}'
+    res.push ', ', JSON.stringify rule.args if rule.args?
+    res.push ')'
+    res
+
+  pushJoin = (join, array) ->
+    res = []
+    array.forEach (item, index) ->
+      res.push join if index > 0
+      [].push.apply res, item
+    res
+
+  evalRule = (rule) ->
+    throw new Error 'Unkown rule type: ' + rule.type unless evals[rule.type]?
+    evals[rule.type] rule
+
   composable = ['Mapping', 'RxSub']
 
   evals =
@@ -149,17 +170,15 @@ compile = (rules) ->
       else
         fn = '$concat'
 
-      pushJoin([fn, '('], ', ', rule.items.map (item) ->
-        evalRule item
-      ).concat(')')
+      [fn, '(']
+      .concat pushJoin ', ', rule.items.map (item) -> evalRule item
+      .concat ')'
 
     Choice: (rule) ->
-      res = []
-      res.push '$choice('
-      pushJoin res, ', ', rule.items.map (item) ->
-        evalRule item
-      res.push ')'
-      res
+      []
+      .concat '$choice('
+      .concat pushJoin ', ', rule.items.map (item) -> evalRule item
+      .concat ')'
 
     RuleCall: (rule) ->
       res = ['$eval(s, "', rule.name, '"']
@@ -173,31 +192,10 @@ compile = (rules) ->
       res
 
     Assignment: (rule) ->
-      scope = switch rule.scope
-        when 'local' then 'l'
-        when 'global' then 'g'
-        else '^'
-      ['$assign("', scope, '", s, "', rule.name, '", ']
-        .concat(evalRule rule.expr)
-        .concat(')')
+      assignment rule, evalRule rule.expr
 
     Rule: (rule) ->
-      scope = switch rule.scope
-        when 'local' then 'l'
-        when 'global' then 'g'
-        else '^'
-      res = [
-        '$assign("'
-        scope
-        '", s, "'
-        rule.name
-        '", $rule(function(s) { \nreturn '
-      ]
-      [].push.apply res, evalRule rule.expr
-      res.push ';}'
-      res.push ', ', JSON.stringify rule.args if rule.args?
-      res.push '))'
-      res
+      assignment rule, ruleDef rule
 
     Repetition: (rule) ->
       []
@@ -242,41 +240,24 @@ compile = (rules) ->
       .concat rule.replace
       .concat '")'
 
-  evalRule = (rule) ->
-    # console.log 'evalRule'
-    # console.dir rule, colors: true, depth: 10
-    if typeof rule is 'string'
-      ruleName = rule
-      rule = rules[ruleName]
-
-    if evals[rule.type]?
-      evals[rule.type] rule
-    else
-      throw new Error 'Unkown rule type: ' + rule.type
-
-
   result = []
 
   # runtime
   _.each runtime, (util, name) ->
-    result.push '$', name , ' = ', util.toString(), ';\n'
+    result.push 'var $', name , ' = ', util.toString(), ';\n'
 
   # global scope
-  result.push '$ = {};\n'
+  result.push 'var $ = {};\n'
   _.each rules, (rule, name) ->
-    result.push '$["', name, '"] = $rule(function(s) {\n  return '
-    [].push.apply result, evalRule rule.expr
-    result.push '; }'
-    if rule.args?
-      result.push ','
-      result.push JSON.stringify rule.args
-    result.push ');\n'
+    result.push '$["', name, '"] = '
+    [].push.apply result, ruleDef rule
+    result.push ';\n'
 
   # kick off
   topRule = _.first _.keys rules
-  result.push '$main = $["', topRule, '"];\n'
+  result.push 'return $["', topRule, '"]();\n'
 
-  result
+  result.join ''
 
 parse = (source) ->
   ast = parser.parse source
