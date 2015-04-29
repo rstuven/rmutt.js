@@ -13,7 +13,7 @@ describe 'rmutt', ->
     name: "snape" , "snap";
     """
     rules = rmutt.parse source, index: 0
-    console.log rules
+    # console.log rules
 
   it 'transformation 1', ->
     source = """
@@ -264,11 +264,17 @@ describe 'rmutt', ->
     expect(rmutt.generate source, index: 7).to.equal 'foobar barquuxquux\n'
 
   it.skip 't16 - positional arguments', ->
+    # source = """
+    # foo: (bar["thing","blah","foo"] "ie"){20} "\\n";
+    # bar[a,b,c]: "i like " _1 " and " b " and " c;
+    # """
+    # foo: bar["thing","blah","foo"];
+
     source = """
-    foo: (bar["thing","blah","foo"] "ie"){20} "\\n";
-    bar[a,b,c]: "i like " _1 " and " b " and " c;
+    foo: bar["thing","blah","foo"];
+    bar[a,b,c]: "i like " a " and " b " and " c;
     """
-    expect(rmutt.generate source, index: 0).to.equal 'i like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooie'
+    expect(rmutt.generate source, index: 0, logRules: true).to.equal 'i like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooie'
 
   # more examples of non-local: math.rm, sva.rm
   # more examples of global: turing.rm, SecomPR.rm

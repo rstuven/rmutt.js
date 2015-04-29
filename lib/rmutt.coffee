@@ -6,77 +6,6 @@ path = require 'path'
 grammar = fs.readFileSync __dirname + '/rmutt.pegjs', 'utf8'
 parser = peg.buildParser grammar
 
-setPackage = (rule, packageName) ->
-  return unless rule?
-  if rule instanceof Array
-    for e in rule
-      setPackage e, packageName
-  else if typeof rule is 'object'
-    if rule.type in ['RuleName', 'Assignment']
-      if rule.name.indexOf('.') is -1
-        rule.name = packageName + '.' + rule.name
-    else if rule.items?
-      setPackage rule.items, packageName
-    else if rule.expr?
-      setPackage rule.expr, packageName
-
-setContext = (rule, context) ->
-  return unless rule?
-  if rule instanceof Array
-    for e in rule
-      setContext e, context
-  else if typeof rule is 'object'
-    if rule.items?
-      setContext rule.items, context
-    else if rule.expr?
-      setContext rule.expr, context
-    else if rule.func?
-      setContext rule.func, context
-
-    rule.context = context
-
-parse = (source) ->
-  ast = parser.parse source
-
-  rules = {}
-  includes = []
-  currentPackage = null
-
-  setRule = (name, rule) ->
-    if currentPackage?
-      name = currentPackage + '.' + name
-      setPackage rule, currentPackage
-
-    rules[name] = rule
-
-    rule.currentPackage = currentPackage
-    rule.context = {}
-    setContext rule, rule.context
-
-  _.each ast, (r) ->
-    switch r.type
-      when '#include'
-        includes.push r.path
-      when 'package'
-        currentPackage = r.name
-      when 'import'
-        setRule r.rule, rules[r.package + '.' + r.rule]
-      when 'rule'
-        setRule r.name, r.expr
-
-  [rules, includes]
-
-doIncludes = (rules, includes, dir) ->
-  _.each includes, (include) ->
-    if dir
-      fullpath = path.join dir, include
-    else
-      fullpath = path.join process.cwd(), include
-    source = fs.readFileSync fullpath, 'utf8'
-    [rules2, includes2] = parse source
-    _.assign rules, rules2
-    doIncludes rules, includes2, path.dirname(fullpath)
-
 exports.parse = (source) ->
   [rules, includes] = parse source
   doIncludes rules, includes
@@ -103,41 +32,12 @@ exports.generate = (source, config) ->
       index = parseInt(Math.random() * terms)
     index
 
-  ###
-  Converts a right-recursive tree to a left-recursive tree.
-
-  (node1 (node2 (node3 node4))) => (((node1 node2) node3) node3)
-
-  type: type                  type: type
-  left: node1                 left:
-  right:                        type: type
-    type: type                  left:
-    left: node2        =>         type: type
-    right:                        left: node1
-      type: type                  right: node2
-      left: node3               right: node3
-      right: node4            right: node4
-
-  ###
-  makeTreeLeftRecursive = (node, type, left, right, fifo) ->
-    if not fifo?
-      makeTreeLeftRecursive node[right], type, left, right, [node[left]]
-    else
-      o = type: type
-      if node.type is type
-        fifo.push node[left]
-        o[left] = makeTreeLeftRecursive node[right], type, left, right, fifo
-        o[right] = fifo.shift()
-      else
-        o[left] = fifo.shift()
-        o[right] = fifo.shift()
-        fifo.push node
-      o
-
   variables = {}
 
+  # rule evaluations by expression type
   evals =
-    rule: (rule) ->
+
+    Rule: (rule) ->
       rules[rule.name] = rule.expr
       rule.expr.context = {}
       rule.expr.context.__parent = rule.context
@@ -149,8 +49,8 @@ exports.generate = (source, config) ->
       if rule.scope is 'local'
         rule.context[rule.name] = evalRule rule.expr
       else
-        variables[rule.currentPackage ? ''] ?= {}
-        variables[rule.currentPackage ? ''][rule.name] = evalRule rule.expr
+        ns = variables[rule.currentPackage ? ''] ?= {}
+        ns[rule.name] = evalRule rule.expr
       return
 
     Terms: (rule) ->
@@ -227,7 +127,7 @@ exports.generate = (source, config) ->
 
     if rule.type is 'String'
       rule.value
-    else if rule.type is 'RuleName'
+    else if rule.type is 'RuleCall'
       ruleName = rule.name
       xrule = rules[ruleName]
       if xrule?
@@ -243,3 +143,105 @@ exports.generate = (source, config) ->
       evals[rule.type] rule if rule.type?
 
   evalRule topRule
+
+parse = (source) ->
+  ast = parser.parse source
+
+  rules = {}
+  includes = []
+  currentPackage = null
+
+  setRule = (name, rule) ->
+    if currentPackage?
+      name = currentPackage + '.' + name
+      setPackage rule, currentPackage
+
+    rules[name] = rule
+
+    rule.currentPackage = currentPackage
+    rule.context = {}
+    setContext rule, rule.context
+
+  _.each ast, (r) ->
+    switch r.type
+      when 'Include'
+        includes.push r.path
+      when 'Package'
+        currentPackage = r.name
+      when 'Import'
+        setRule r.rule, rules[r.package + '.' + r.rule]
+      when 'Rule'
+        setRule r.name, r.expr
+
+  [rules, includes]
+
+doIncludes = (rules, includes, dir) ->
+  _.each includes, (include) ->
+    if dir
+      fullpath = path.join dir, include
+    else
+      fullpath = path.join process.cwd(), include
+    source = fs.readFileSync fullpath, 'utf8'
+    [rules2, includes2] = parse source
+    _.assign rules, rules2
+    doIncludes rules, includes2, path.dirname(fullpath)
+
+setPackage = (rule, packageName) ->
+  return unless rule?
+  if rule instanceof Array
+    for e in rule
+      setPackage e, packageName
+  else if typeof rule is 'object'
+    if rule.type in ['RuleCall', 'Assignment']
+      if rule.name.indexOf('.') is -1
+        rule.name = packageName + '.' + rule.name
+    else if rule.items?
+      setPackage rule.items, packageName
+    else if rule.expr?
+      setPackage rule.expr, packageName
+
+setContext = (rule, context) ->
+  return unless rule?
+  if rule instanceof Array
+    for e in rule
+      setContext e, context
+  else if typeof rule is 'object'
+    if rule.items?
+      setContext rule.items, context
+    else if rule.expr?
+      setContext rule.expr, context
+    else if rule.func?
+      setContext rule.func, context
+
+    rule.context = context
+
+###
+Converts a right-recursive tree to a left-recursive tree.
+
+(node1 (node2 (node3 node4))) => (((node1 node2) node3) node4)
+
+type: type                  type: type
+left: node1                 left:
+right:                        type: type
+  type: type                  left:
+  left: node2        =>         type: type
+  right:                        left: node1
+    type: type                  right: node2
+    left: node3               right: node3
+    right: node4            right: node4
+
+###
+makeTreeLeftRecursive = (node, type, left, right, fifo) ->
+  if fifo?
+    o = type: type
+    if node.type is type
+      fifo.push node[left]
+      o[left] = makeTreeLeftRecursive node[right], type, left, right, fifo
+      o[right] = fifo.shift()
+    else
+      o[left] = fifo.shift()
+      o[right] = fifo.shift()
+      fifo.push node
+    o
+  else
+    makeTreeLeftRecursive node[right], type, left, right, [node[left]]
