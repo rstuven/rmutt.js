@@ -30,6 +30,7 @@ exports.generate = (source, config) ->
 transpile = (rules) ->
   # console.dir rules, colors: true, depth:10
 
+  # TODO: Extract to module
   runtime =
 
     eval: (s, name, args) ->
@@ -153,12 +154,17 @@ transpile = (rules) ->
       [].push.apply res, item
     res
 
+  evalRules = (rules) ->
+    pushJoin ', ', rules.map (rule) -> evalRule rule
+
   evalRule = (rule) ->
     throw new Error 'Unkown rule type: ' + rule.type unless evals[rule.type]?
     evals[rule.type] rule
 
+  # TODO: Study extensibility model (user function)
   composable = ['Mapping', 'RxSub']
 
+  # TODO: Extract to module
   evals =
 
     String: (rule) ->
@@ -171,23 +177,26 @@ transpile = (rules) ->
         fn = '$concat'
 
       [fn, '(']
-      .concat pushJoin ', ', rule.items.map (item) -> evalRule item
+      .concat evalRules rule.items
       .concat ')'
 
     Choice: (rule) ->
       []
       .concat '$choice('
-      .concat pushJoin ', ', rule.items.map (item) -> evalRule item
+      .concat evalRules rule.items
       .concat ')'
 
     RuleCall: (rule) ->
-      res = ['$eval(s, "', rule.name, '"']
+      res = [
+        '$eval(s, "'
+        rule.name
+        '"'
+      ]
       if rule.args?
-        res.push ', ['
-        rule.args.forEach (arg, i) ->
-          res.push ', ' if i > 0
-          [].push.apply res, evalRule arg
-        res.push ']'
+        res = res
+        .concat ', ['
+        .concat evalRules rule.args
+        .concat ']'
       res.push ')'
       res
 
@@ -232,6 +241,7 @@ transpile = (rules) ->
       .concat evalRule rule.replace
       .concat ')'
 
+    # TODO: Generalize grammar to use Mapping type only
     RxSub: (rule) ->
       []
       .concat '$mapping("'
