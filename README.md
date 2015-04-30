@@ -1,6 +1,11 @@
+# TODO:
+## Add `examples` directory
+## Write commentary about transpilation, grammar compiled as JavaScript function.
+
+
 # rmutt.js
 
-> **rmutt.js** is a Turing-complete interpreted language for
+> **rmutt.js** is a Turing-complete transpiled language for
 generating random strings from [context-sensitive grammars](https://en.wikipedia.org/wiki/Context-sensitive_grammar).
 
 
@@ -14,6 +19,12 @@ generating random strings from [context-sensitive grammars](https://en.wikipedia
 var rmutt = require('rmutt');
 var grammar = fs.readFileSync('./file.rm');
 var result = rmutt.generate(grammar);
+```
+
+``` javascript
+var compiled = rmutt.compile(grammar);
+var result1 = compiled()
+var result2 = compiled()
 ```
 
 ### As command

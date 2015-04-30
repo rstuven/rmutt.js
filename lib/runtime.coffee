@@ -22,7 +22,7 @@ module.exports =
   ###
   choice: ->
     index = $choose arguments.length
-    arguments[index]
+    arguments[index]() # lazy rule evaluation
 
   ###
   # $choose
@@ -92,6 +92,10 @@ module.exports =
     if args?
       throw new Error "Missing parameterized rule or custom function '#{name}'"
 
+    # custom function as transformation, probably
+    if $config.functions?[name]?
+      return $config.functions[name]
+
     return name
 
   ###
@@ -99,11 +103,6 @@ module.exports =
   ###
   func: (fn) ->
     return fn if typeof fn is 'function'
-
-    # custom function as transformation, probably
-    if typeof fn is 'string' and $config?.functions?[fn]?
-      return $config.functions[fn]
-
     throw new Error "Processing grammar: expression '#{fn.toString()}' is not a function"
 
   ###
@@ -128,8 +127,8 @@ module.exports =
       s = $scope s
       if args?
         for arg, i in args
-          s['_' + (i+1)] = arg
-          s[argnames[i]] = arg
+          s['_' + (i+1)] = arg # positional argument
+          s[argnames[i]] = arg # named argument
       fn s
 
   ###

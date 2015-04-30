@@ -6,6 +6,11 @@ expectc = (source, expected) ->
   for result, index in expected.reverse()
     expect(compiled oracle: index).to.equal result
 
+# TODO: empty grammar test
+# TODO: undefined config test
+# TODO: config.entryRule test
+# TODO: rename expectc
+
 describe 'rmutt', ->
 
   it 't10 - transformation chaining', ->
@@ -55,8 +60,8 @@ describe 'rmutt', ->
     """
     compiled = rmutt.compile source
     expect(compiled oracle: 0).to.equal 'ate patiently with you'
-    expect(compiled oracle: 300).to.equal 'yelled impatiently at me'
-    expect(compiled oracle: 512).to.equal 'waited patiently on me'
+    expect(compiled oracle: 200).to.equal 'waited patiently for me'
+    expect(compiled oracle: 400).to.equal 'yelled impatiently at you'
 
   it 't0', ->
     source = """
@@ -68,8 +73,8 @@ describe 'rmutt', ->
     position: "the butler", "the chauffeur";
     """
     compiled = rmutt.compile source
-    expect(compiled oracle: 95).to.equal "Ms Archibald Worthingham said, 'I am Ms Archibald Worthingham, so nice to meet you.'"
-    expect(compiled oracle: 96).to.equal "the butler said, 'I am the butler, so nice to meet you.'"
+    expect(compiled oracle: 1).to.equal "the butler said, 'I am the butler, so nice to meet you.'"
+    expect(compiled oracle: 0).to.equal "Dr. Nancy McPhee said, 'I am Dr. Nancy McPhee, so nice to meet you.'"
 
   it 't1 - random selection', ->
     source = """
@@ -80,6 +85,8 @@ describe 'rmutt', ->
     expect(compiled oracle: 1).to.equal '1'
     expect(compiled oracle: 2).to.equal '2'
 
+  # TODO: Circu;ar reference?
+  # TODO: Check original rmutt test
   it 't2 - recursion', ->
     source = """
     t: "0"|a;
@@ -103,8 +110,8 @@ describe 'rmutt', ->
     """
     expectc source, [
       'ad'
-      'ac'
       'ab'
+      'ac'
       'ab'
     ]
 
@@ -236,12 +243,13 @@ describe 'rmutt', ->
 
   it 't12 - probability multipliers', ->
     source = """
+    package test;
     a: "0" 3| "1";
     """
     compiled = rmutt.compile source
     expect(compiled oracle: 3).to.equal '1'
     expect(compiled oracle: 2).to.equal '0'
-    expect(compiled oracle: 1).to.equal '0'
+    expect(compiled oracle: 1).to.equal '1'
     expect(compiled oracle: 0).to.equal '0'
 
   it 't13 - complex mapping syntax', ->
@@ -253,6 +261,13 @@ describe 'rmutt', ->
     expect(compiled oracle: 4).to.equal '1'
     expect(compiled oracle: 1).to.equal 'zero'
     expect(compiled oracle: 0).to.equal '0'
+
+    # TODO: Expected order:
+    # oracle:3 one
+    # oracle:2 zero
+    # oracle:1 1
+    # oracle:0 0
+
 
   it 't14 - includes', ->
     source = """

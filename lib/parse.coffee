@@ -24,24 +24,24 @@ parse = (source) ->
   @package = null
 
   setRule = (name, rule) ->
-    rules[qualify name] = rule
-    qualifyDeep rule
+    rules[pack name] = rule
+    packDeep rule
 
-  qualify = (name, pkg) =>
+  pack = (name, pkg) =>
     pkg ?= @package
     if pkg? and name.indexOf(PACKAGE_SEPARATOR) is -1
       return pkg + PACKAGE_SEPARATOR + name
     name
 
-  qualifyDeep = (node) =>
+  packDeep = (node) =>
     return unless @package?
     if node.type in ['RuleCall', 'Assignment']
-      node.name = qualify node.name
+      node.name = pack node.name
     else if node.items?
       for item in node.items
-        qualifyDeep item
+        packDeep item
     else if node.expr?
-      qualifyDeep node.expr
+      packDeep node.expr
 
   _.each ast, (node) =>
     switch node.type
@@ -50,7 +50,7 @@ parse = (source) ->
       when 'Package'
         @package = node.name
       when 'Import'
-        setRule node.rule, rules[qualify node.rule, node.package]
+        setRule node.rule, rules[pack node.rule, node.package]
       when 'Rule'
         setRule node.name, node
 

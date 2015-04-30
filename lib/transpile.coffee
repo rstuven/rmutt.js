@@ -10,6 +10,9 @@ module.exports = (rules) ->
   # console.dir rules, colors: true, depth:10
   result = []
 
+  # fallback
+  result.push '$config = $config || {};\n'
+
   # runtime
   _.each runtime, (util, name) ->
     result.push 'var $', name , ' = ', util.toString(), ';\n'
@@ -26,6 +29,7 @@ module.exports = (rules) ->
     ]
 
   # kick off
+  # TODO: entry point configuration
   topRule = _.first _.keys rules
   result.push 'return $["', topRule, '"]();\n'
 
@@ -43,9 +47,17 @@ types =
     assignment rule, evalRule rule.expr
 
   Choice: (rule) ->
+
+    lazyRules = pushJoin ', ', rule.items.map (rule) ->
+      concat [
+        'function(){ return '
+        evalRule rule
+        '}'
+      ]
+
     concat [
       '$choice('
-      evalRules rule.items
+      lazyRules
       ')'
     ]
 
@@ -81,12 +93,18 @@ types =
     ]
 
   Terms: (rule) ->
+
+    # Simplify single element Terms
+    if rule.items.length is 1
+      return evalRule rule.items[0]
+
     fn =  if _.all(rule.items, (item) -> item.type in composable)
       '$compose'
     else
       '$concat'
     concat [
-      fn, '('
+      fn
+      '('
       evalRules rule.items
       ')'
     ]
@@ -190,7 +208,10 @@ pushJoin = (join, array) ->
 
 ruleDef = (rule) ->
   concat [
-    '$rule(function(s) { \nreturn '
+    '$rule(function rule_'
+    rule.name.replace /[.-]/, '_'
+    '(s) { \n'
+    'return '
     evalRule rule.expr
     ';\n}'
     if rule.args? then ', ' + JSON.stringify rule.args
