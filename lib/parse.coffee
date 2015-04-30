@@ -14,41 +14,45 @@ module.exports = (source) ->
 grammar = fs.readFileSync __dirname + '/rmutt.pegjs', 'utf8'
 parser = peg.buildParser grammar
 
+PACKAGE_SEPARATOR = '.'
+
 parse = (source) ->
   ast = parser.parse source
 
   rules = {}
   includes = []
-  currentPackage = null
+  @package = null
 
   setRule = (name, rule) ->
-    if currentPackage?
-      name = currentPackage + '.' + name
+    rules[qualify name] = rule
+    qualifyDeep rule
 
-    rules[name] = rule
-    recursiveNamespacing rule
+  qualify = (name, pkg) =>
+    pkg ?= @package
+    if pkg? and name.indexOf(PACKAGE_SEPARATOR) is -1
+      return pkg + PACKAGE_SEPARATOR + name
+    name
 
-  recursiveNamespacing = (rule) ->
-    return unless currentPackage?
-    if rule.type in ['RuleCall', 'Assignment']
-      if rule.name.indexOf('.') is -1
-        rule.name = currentPackage + '.' + rule.name
-    else if rule.items?
-      for item in rule.items
-        recursiveNamespacing item
-    else if rule.expr?
-      recursiveNamespacing rule.expr
+  qualifyDeep = (node) =>
+    return unless @package?
+    if node.type in ['RuleCall', 'Assignment']
+      node.name = qualify node.name
+    else if node.items?
+      for item in node.items
+        qualifyDeep item
+    else if node.expr?
+      qualifyDeep node.expr
 
-  _.each ast, (r) ->
-    switch r.type
+  _.each ast, (node) =>
+    switch node.type
       when 'Include'
-        includes.push r.path
+        includes.push node.path
       when 'Package'
-        currentPackage = r.name
+        @package = node.name
       when 'Import'
-        setRule r.rule, rules[r.package + '.' + r.rule]
+        setRule node.rule, rules[qualify node.rule, node.package]
       when 'Rule'
-        setRule r.name, r
+        setRule node.name, node
 
   [rules, includes]
 

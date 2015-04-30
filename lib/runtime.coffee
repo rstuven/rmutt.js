@@ -12,11 +12,10 @@ module.exports =
     if scope is 'g'
       $[name] = value
     else
+      s[name] = value
       if scope is '^'
         s.$outer[name] = value
-      s[name] = value
-
-    return undefined
+    return
 
   ###
   # $choice

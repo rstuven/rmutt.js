@@ -291,7 +291,7 @@ describe 'rmutt', ->
     tests:
      local.top " "
      global.top " "
-     non_local.top " "
+     outer.top " "
     ;
 
     package local;
@@ -302,7 +302,7 @@ describe 'rmutt', ->
     B: (X="2") C X;
     C: (X="3") X;
 
-    package non_local;
+    package outer;
 
     top: A X;
 
@@ -319,7 +319,7 @@ describe 'rmutt', ->
     C: ($X="3") X;
     """
 
-    expect(rmutt.generate source).to.equal '321local.X 2213 331non_local.X '
+    expect(rmutt.generate source).to.equal '321local.X 2213 331outer.X '
 
   it 't18 - imports', ->
     source = """

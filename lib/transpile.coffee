@@ -1,6 +1,7 @@
 _ = require 'lodash'
 jsStringEscape = require 'js-string-escape'
 runtime = require './runtime'
+push = Array.prototype.push
 
 ###
 # transpile
@@ -16,14 +17,20 @@ module.exports = (rules) ->
   # global scope
   result.push 'var $ = {};\n'
   _.each rules, (rule, name) ->
-    result.push '$["', name, '"] = '
-    [].push.apply result, ruleDef rule
-    result.push ';\n'
+    push.apply result, concat [
+      '$["'
+      name
+      '"] = '
+      ruleDef rule
+      ';\n'
+    ]
+
 
   # kick off
   topRule = _.first _.keys rules
   result.push 'return $["', topRule, '"]();\n'
 
+  # console.log result.join ''
   result.join ''
 
 # TODO: Study extensibility model (user function)
@@ -37,87 +44,93 @@ translations =
     assignment rule, evalRule rule.expr
 
   Choice: (rule) ->
-    []
-    .concat '$choice('
-    .concat evalRules rule.items
-    .concat ')'
+    concat [
+      '$choice('
+      evalRules rule.items
+      ')'
+    ]
 
   Repetition: (rule) ->
-    []
-    .concat '$repeat('
-    .concat evalRule rule.repeatable
-    .concat ', '
-    .concat JSON.stringify rule.range
-    .concat ')'
+    concat [
+      '$repeat('
+      evalRule rule.repeatable
+      ', '
+      JSON.stringify rule.range
+      ')'
+    ]
 
   Rule: (rule) ->
     assignment rule, ruleDef rule
 
   RuleCall: (rule) ->
-    res = [
+    args = (v) -> v() if rule.args?
+    concat [
       '$eval(s, "'
       rule.name
       '"'
+      args -> ', ['
+      args -> evalRules rule.args
+      args -> ']'
+      ')'
     ]
-    if rule.args?
-      res = res
-      .concat ', ['
-      .concat evalRules rule.args
-      .concat ']'
-    res.push ')'
-    res
 
   String: (rule) ->
-    ['"', jsStringEscape(rule.value), '"']
+    [
+      '"'
+      jsStringEscape rule.value
+      '"'
+    ]
 
   Terms: (rule) ->
-    if _.all(rule.items, (item) -> item.type in composable)
-      fn = '$compose'
+    fn =  if _.all(rule.items, (item) -> item.type in composable)
+      '$compose'
     else
-      fn = '$concat'
-
-    [fn, '(']
-    .concat evalRules rule.items
-    .concat ')'
+      '$concat'
+    concat [
+      fn, '('
+      evalRules rule.items
+      ')'
+    ]
 
   Multiplier: (rule) ->
-    res = []
-    for i in [1 .. rule.multiplier] by 1
-      res.push ',' if i > 1
-      [].push.apply res, evalRule rule.term.items[0]
-    res
+    array = Array rule.multiplier
+    item = evalRule rule.term.items[0]
+    _.fill array, item
+    pushJoin ', ', array
 
   Mapping: (rule) ->
-    []
-    .concat '$mapping('
-    .concat evalRule rule.search
-    .concat ','
-    .concat evalRule rule.replace
-    .concat ')'
+    concat [
+      '$mapping('
+      evalRule rule.search
+      ','
+      evalRule rule.replace
+      ')'
+    ]
 
   # TODO: Generalize grammar to use Mapping type only
   RxSub: (rule) ->
-    []
-    .concat '$mapping("'
-    .concat rule.search
-    .concat '","'
-    .concat rule.replace
-    .concat '")'
+    concat [
+      '$mapping("'
+      rule.search
+      '","'
+      rule.replace
+      '")'
+    ]
 
   Transformation: (rule) ->
-
     # for transformation chaining, we need to make the tree left-recursive
     if rule.type is 'Transformation' and rule.func.type is 'Transformation'
       rule = makeTreeLeftRecursive rule, 'Transformation', 'expr', 'func'
 
-    []
-    .concat evalRule rule.func
-    .concat '('
-    .concat evalRule rule.expr
-    .concat ')'
+    concat [
+      evalRule rule.func
+      '('
+      evalRule rule.expr
+      ')'
+    ]
 
 ###
-Converts a right-recursive tree to a left-recursive tree.
+Convert a right-recursive tree to a left-recursive tree.
 
 (node1 (node2 (node3 node4))) => (((node1 node2) node3) node4)
 
@@ -150,17 +163,26 @@ makeTreeLeftRecursive = (node, type, left, right, fifo) ->
 assignment = (rule, evalued) ->
   scope = switch rule.scope
     when 'local' then 'l'
-    when 'global' then 'g'
-    else '^'
-  [
+    when 'outer' then '^'
+    else 'g'
+    # when 'non_local' then '^'
+    # else 'g'
+
+  concat [
     '$assign("'
     scope
     '", s, "'
     rule.name
     '", '
+    evalued
+    ')'
   ]
-  .concat evalued
-  .concat ')'
+
+
+concat = (values) ->
+  values.reduce (ret, value) ->
+    ret.concat value
+  , []
 
 evalRule = (rule) ->
   throw new Error 'Unkown rule type: ' + rule.type unless translations[rule.type]?
@@ -169,18 +191,19 @@ evalRule = (rule) ->
 evalRules = (rules) ->
   pushJoin ', ', rules.map (rule) -> evalRule rule
 
+
 pushJoin = (join, array) ->
-  res = []
+  ret = []
   array.forEach (item, index) ->
-    res.push join if index > 0
-    [].push.apply res, item
-  res
+    ret.push join if index > 0
+    push.apply ret, item
+  ret
 
 ruleDef = (rule) ->
-  res = []
-  .concat '$rule(function(s) { \nreturn '
-  .concat evalRule rule.expr
-  .concat ';\n}'
-  res.push ', ', JSON.stringify rule.args if rule.args?
-  res.push ')'
-  res
+  concat [
+    '$rule(function(s) { \nreturn '
+    evalRule rule.expr
+    ';\n}'
+    if rule.args? then ', ' + JSON.stringify rule.args
+    ')'
+  ]
