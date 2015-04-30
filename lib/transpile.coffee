@@ -49,11 +49,15 @@ types =
   Choice: (rule) ->
 
     lazyRules = pushJoin ', ', rule.items.map (rule) ->
-      concat [
-        'function(){ return '
-        evalRule rule
-        '}'
-      ]
+      evalued = evalRule rule
+      if evalued.__terminal__
+        evalued
+      else
+        concat [
+          'function(){ return '
+          evalued
+          '}'
+        ]
 
     concat [
       '$choice('
@@ -86,11 +90,13 @@ types =
     ]
 
   String: (rule) ->
-    [
+    res = [
       '"'
       jsStringEscape rule.value
       '"'
     ]
+    res.__terminal__ = true
+    res
 
   Terms: (rule) ->
 

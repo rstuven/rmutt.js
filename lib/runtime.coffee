@@ -22,7 +22,8 @@ module.exports =
   ###
   choice: ->
     index = $choose arguments.length
-    arguments[index]() # lazy rule evaluation
+    value = arguments[index]
+    value?() ? value # lazy rule evaluation
 
   ###
   # $choose
