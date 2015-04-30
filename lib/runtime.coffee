@@ -14,7 +14,7 @@ module.exports =
     else
       s[name] = value
       if scope is '^'
-        s.$outer[name] = value
+        s.$parent[name] = value
     return
 
   ###
@@ -59,36 +59,34 @@ module.exports =
   ###
   # $eval
   ###
-  eval: (s, name, args) ->
+  eval: (local, name, args) ->
+
+    get = (scope) ->
+      if scope?.hasOwnProperty name
+        ref = scope[name]
+        if typeof ref is 'function'
+          return [true, ref(local, args)]
+        else
+          return [true, ref]
+      [false]
 
     # local
-    if s.hasOwnProperty name
-      ref = s[name]
-      if typeof ref is 'function'
-        return ref s, args
-      else
-        return ref
+    [found, value] = get local
+    return value if found
 
-    # outer
-    if s.$outer?.hasOwnProperty name
-      ref = s.$outer[name]
-      if typeof ref is 'function'
-        return ref s, args
-      else
-        return ref
+    # parent
+    [found, value] = get local.$parent
+    return value if found
 
     # global
-    if $.hasOwnProperty name
-      ref = $[name]
-      if typeof ref is 'function'
-        return ref s, args
-      else
-        return ref
+    [found, value] = get $
+    return value if found
 
     # custom function as parameterized rule
-    if $config.functions?[name]? and args?
-      return $config.functions[name].apply null, (args)
+    if args? and $config.functions?[name]?
+      return $config.functions[name].apply null, args
 
+    # orphan args :(
     if args?
       throw new Error "Missing parameterized rule or custom function '#{name}'"
 
@@ -134,10 +132,10 @@ module.exports =
   ###
   # $scope
   ###
-  scope: (outer) ->
+  scope: (parent) ->
     local = {}
-    if outer?
-      for k, v of outer
+    if parent?
+      for k, v of parent
         local[k] = v
-    local.$outer = outer
+    local.$parent = parent
     local

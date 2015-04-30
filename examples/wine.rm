@@ -1,0 +1,116 @@
+#include "util.rm"
+
+import cap,an from util;
+
+top: reviews;
+_:" ";
+review:  "<b>" rating "</b><i>" wineName "</i>" price "<br>\n" cap[description] _ cap[recommendation]
+;reviews:  review "<p>" review "<p>" review "<p>" review "<p>"  review "<p>"  review "<p>" review "<p>" review "<p>" review "<p>" review "<p>"
+;rating:  "73" | "84" | "88" | "90" | "91" | "92" | "94" | "11"
+;price:  "$45" | "$37" | "$58" | "$98" | "$132" | "$7" | "$.50" | "$1729"
+;recommendation:  "Try in" _ futureyear "." | "Best through" _ futureyear "." | "Drink now or cellar until" _ futureyear "."
+| "Drink immediately." | "Keep it in the freezer." | "Ready for drinking but better in" _ futureyear "."
+| "Cellar until" _ futureyear "." | "Needs cellaring until at least" _ futureyear "."
+| "Serve <i>a la mode</i>."
+;description:   verbal "." |  adjectival "." |  conversational "."
+;wineName:  cap[brand] _ cap[province] _ cap[location] _ pastyear _ cap[tag]
+;tag:  | "Red" | "Select"
+;brand:  "Chateau" _ cap[chateau] | firstName _ lastName
+;chateau:  "Le Fevre" | "St." firstName | "Dupont" | "Mont" place
+;place:  "Lac" | "Village" | "Cite" | "Province" | "Campagne" | "Fleuve" | "Merde"
+;firstName:  "Jean" | "Paul" | "Jean-Paul" | "Jean-Luc" | "Pierre"
+;lastName:  "Masson" | "Marchaud" | "Roquefort" | "Brie" | "Goddard" | "Picard"
+;verbal:  atier _ lends _ quality _ "to this" _ wine | atier _ gives _ "this" _ wine _ quality | atier _ enhances _ "the" _ attribute _ "of this" _ wine
+| atier _ makes _ "this" _ wine _ qualified | atier _ affects _ "this" _ wine
+|  tiers _ lend _ quality _ "to this" _ wine | tiers _ give _ "this" _ wine _ quality | tiers _ enhance _ "the" _ attribute _ "of this" _ wine
+|  tiers _ make _ "this" _ wine _ qualified | tiers _ affect _ "this" _ wine
+|  tiers _ make _ "this the most" _ qualified _ province _ "of" _ pastyear
+|  atier _ enhances _ "the" _ tiers | subadjectival "," _ "this" _ wine _ servesup _ plentiful _ tiers
+|  plentiful _ tiers _ make _ "this" _ wine _ qualified
+|  subadjectival "," _ "this" _ wine _ isComparableToA _ judgement _ end _ province "-- without the" _ tiers
+;conversational:  "a lesser" _ wine _ "wouldn't have the" _ tiers _ "that" _ make _ "this" _ comparableToA _ judgement _ end _ province
+|  "one rarely" _ comesAcross _ an["a" _ province] _ "this" _ qualified "--" but ", don't expect" _ tier
+|  "since" _ pastyear "," _ brand _ "has been" _ producing _ judgement _ province "-- but never with the" _ tiers _ "that" _ affect _ "this" _ wine
+| "not" _ untilThis _ "has" _ brand _ produced _ suchGoodStuff
+| "unless" _ youLike _ quality "," _ tooBad
+| "finally, a" _ province _ "with" _ tiers "-- and" _ tier
+;suchGoodStuff:  tiers _ "this" _ judgement | tannins _ "this" _ judgement | an["a" _ finish] _ "this" _ judgement
+| "such" _ judgement _ tannins
+;untilThis:  "until this" _ wine | "since" _ pastyear
+;produced:  "produced" | "given us" | "come up with" | dazzled _ "us with"
+;dazzled:  "dazzled" | "amazed" | "astounded" | "surprised" | "astonished"
+;producing:  "producing" | "giving us" | dazzling _ "us with"
+;dazzling:  "dazlling" | "amazing" | "astounding" | "surprising" | "astonishing"
+;tooBad:  "you'll be" _ disappointed _ "by this" _ wine | "this" _ wine _ "will leave you" _ wanting
+;youLike:  "you're looking for" | "you can't live without" | "you need" | "you prefer" | "you want" | "you can put up with"
+| "you're OK with" | "you insist on"
+;disappointed:  "disappointed" | "let down" | "mortified" | "unsatisfied"
+;wanting:  disappointed | "in the cold" | "without a leg to stand on" | "wondering why you didn't spring for <i>" wineName "</i>"
+;comesAcross:  "comes across" | "sees" | "stumbles upon"
+;but:  "still" | "however" | "yet" | "nevertheless"
+;comparableToA:  "comparable to a" | "a good substitute for a" | "remind us of a"
+;isComparableToA:  "could pass for a" | "reminds us of a" | "isn't so different from a" | "tastes not unlike"
+| "bears comparison to a" | "brings to mind a"
+;end:  | "high-end" | "low-end"
+;judgement:  "excellent" | "world-class" | "reasonable" | "passable" | "sturdy" | "well-rounded" | "lousy"
+;lends:  "lends" | "imparts"
+;lend:  "lend" | "impart"
+;gives:  "gives"
+;give:  "give"
+;makes:  "makes"
+;make:  "make"
+;enhances:  "enhances" | "brings out" | "offsets" | "highlights" | "struggles against" | "ruins" | "mutes" | "stifles"
+| "mellows" | "bullies" | "pokes through" | "outshines" | "complements" | "destroys"
+;enhance:  "enhance" | "bring out" | "offset" | "highlight" | "struggle against" | "ruin" | "mute" | "stifle" | "mellow"
+| "bully" | "poke through" | "outshine" | "complement" | "destroy"
+;affects:  "ruins" | "compilcates" | "frustrates" | "tops off" | "forms the basis of"
+;affect:  "ruin" | "complicate" | "frustrate" | "top off" | "form the basis of"
+;servesup:  "serves up" | "gives us" | "presents" | "pampers us with" | "displays"
+;plentiful:  "plentiful" | plenty "of" | "just enough"
+;plenty:  "plenty" | "an abundance" | "a lot" | "no end" | "its share" | "a fair amount" | "lots" | "a generous helping of"
+;wine:  province | adjective _ province | upstart _ "of a" _ province
+;province:  "Bourdeaux" | "Pinot Noir" | "Champagne" | "Beaujolais" | "Burgundy" | "Chardonnay" | "Cabernet Sauvignon"
+| "Sauvignon" | "Pinot Blanc"
+;location:  "Monmartre" | "Cote D'Ivoire" | "Jamaica Plain" | "Compton" | "Long Island" | "Napa Valley" | "Nyack" | "Sri Lanka"
+;upstart:  "filly" | "spring chicken" | "rookie" | "dark horse" | "old standby" | "sham" | "disappointment"
+|  "imitation" | "upstart" | "newcomer" | "late bloomer"
+;tiers:  qualified _ flavor _ tannins | qualified _ flavor _ tannins _ "and " atier | flavor _ tannins
+;atier:  ("a" _ qualified)>util.xan _ flavor _ finish | ("a" _ finish)>util.xan _ suggesting _ flavor | ("a" _ qualified)>util.xan _ finish
+;tier:  tiers | atier
+;adjectival:  adjective "," _ qualification
+;subadjectival:  adjective "," _ subqualification
+;adjective:  adjective "," _ adjective | judgement | "tanky" | "piquant" | "spicy" | "languid" | "light and airy" | "dark" | "heavy" | "oblique" | "tawny" | "bland" | "bawdy" | "tawdry" | "mischevious" | "inimitable"
+| "whimsical" | "impudent" | "cute" | "supple" | "crisp" | "delicate" | "dry" | "sharp" | "piercing"
+| "loud" | "muted" | "soft" | "seismic" | "fraudulent" | "perfect"
+| "foppish" | "dainty" | "sophomoric" | "mature" | "coy" | "homey" | "leaden"
+| "feathery" | "leathery" | "practical" | "perplexing" | "violent" | "insolent"
+| "urgent" | "businesslike" | "playful" | "thoughtful" | "disarming"
+;qualification:  "with" _ qualified _ hints _ "of" _ flavor | "but" _ needs _ moreOrLess | "but" _ lacks _ enough _ attribute _ tosatisfy
+| "with" _ tier | "but" _ lacks _ quality
+;subqualification:  "with" _ qualified _ hints _ "of" _ flavor | "but without" _ attribute | "but without" _ enough _ attribute _ tosatisfy
+;qualmore:  "delicate" | "vibrant" | "lingering" | "obvious" | "occasional" | "robust" | "whimsical" | "tannic" | "distinct"
+;qualnoer:  "subtle" | "firm" | "vague"
+;qualer:  "subtler" | "firmer" | "vaguer"
+;qualified:  qualmore | qualnoer
+;qualifieder:  "more" _ qualmore | qualer
+;hints:  "hints" | "twinges" | "suggestions" | "overtones" | "touches" | "dashes" | "implications"
+;suggesting:  "suggesting" | "implying" | "connoting" | "approaching" | "reminiscent of"
+;flavor:  "berry" | "chocolate" | "cheese" | "melon" | "toasty oak" | "currant" | "spice" | "black cherry" | "leather"
+| "anise" | "licorice" | "coffee" | "veal" | "strawberry" | "violet" | "asparagus" | "mint" | "tar" | "sand"
+| "okra" | "toast" | "vanilla" | "dandelion" | "pear" | "citrus" | "yeast" | "vinegar"
+| "butter" | "sour cream" | "cream of tartar"
+| "sausage" | "ketchup" | "popcorn"
+;needs:  "needs" | "could use"
+;moreOrLess:  "more" _ attribute | "a shade less" _ attribute | ("a" _ qualifieder)>util.xan _ attribute
+;quality:  "a sense of" _ sense | attribute
+;attribute:  "vibrancy" | "delicacy" | "plausibility" | "whimsy" | "bitterness" | "ambiguity" | "machismo"
+| "sarcasm" | "impudence"
+;sense:  "place" | "earthiness" | "traditionalism" | "direction" | "history" | "irony" | "humor"
+;lacks:  "lacks" | "doesn't have" 
+;enough:  "enough" | "the right"
+;tosatisfy:  "for a" _ pastyear _ province | "for a" _ province _ "of its class"
+;pastyear:  "1961" | "1972" | "1983" | "1987" | "1990" | "1991" | "1992" | "1993" | "1994" | "1995"
+;futureyear:  "2000" | "2001" | "2002" | "2005" | "2017" | "2112"
+;finish:  "finish" | "aftertaste"
+;tannins:  "tannins" | "overtones"
+;

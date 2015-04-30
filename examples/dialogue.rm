@@ -1,0 +1,64 @@
+#include "grammar.rm"
+
+package dialogue;
+
+import cap from util;
+import adv,adj from eng;
+
+main: (
+  (c1 = eng.noun_name)
+  (c2 = eng.noun_name)
+  ((speaker = c1) dialogue
+   (speaker = c2) dialogue){1,5}
+){1,20};
+
+dialogue: (
+  "\"" cap[k? statement]  ",\"" " " said_speaker ".\n" 2|
+  "\"" statement > util.xcap ",\"" " " said_speaker ", \"" k statement ".\"\n"
+);
+
+said_speaker: said " " speaker (" " qualification)?;
+
+speaker: eng.noun_name;
+
+k: grammar.cc " ";
+
+subject: grammar.subj;
+
+sub_clause: (
+ grammar.sc " " statement
+);
+
+statement:
+  subject " " grammar.vp_past
+;
+
+said:
+"thought"|
+"said"|
+"testified"|
+"proclaimed"|
+"quipped"|
+"mused"|
+"screamed"|
+"insisted"|
+"complained"|
+"argued"|
+"muttered"|
+"whispered"|
+"shrieked"|
+"drawled"|
+"cried"|
+"exclaimed"|
+"protested"|
+"declared"|
+"grumbled"|
+"spat"
+;
+
+qualification: (
+  ("as"|"as if"|"so that"|"while"|"when"|"after") " " grammar.subj " " grammar.vp_past |
+  "between " eng.noun_plural " of " eng.noun_singular |
+  "despite being " adv " " adj |
+  "even though " statement
+);

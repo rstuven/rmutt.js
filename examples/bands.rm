@@ -1,0 +1,179 @@
+#include "util.rm"
+
+import cap from util;
+
+top: (oldBandname "\n"){10};
+and: "and the";
+_:" ";
+the: "the";
+bands: "bands" | "groups" | "ensembles" | "combos" | "outfits" | "supergroups" | "power trios" | "artists" |
+ "recording artists" | "acts" | "cut creators" | "cover bands";
+cool: "cool" | "awesome" | "jammin'" | "rockin'" | "groovy" | "hot" | "out-of-control" | "killer";
+style: "rock" | "pop" | "musical" | "alternative" | "indie rock" | "major label" | "classic rock";
+oldBandname: andname | name | thename;
+bandname: name;
+andname:
+                ae-adj _ ae-n _ and _ ae-adj _ ae-pln |
+		oo-adj _ oo-n _ and _ oo-adj _ oo-pln |
+		oh-adj _ oh-n _ and _ oh-adj _ oh-pln |
+		i-adj _ i-n _ and _ i-adj _ i-pln |
+		ih-adj _ ih-n _ and _ ih-adj _ ih-pln |
+		uh-adj _ uh-n _ and _ uh-adj _ uh-pln |
+		ee-adj _ ee-n _ and _ ee-adj _ ee-pln |
+		er-adj _ er-n _ and _ er-adj _ er-pln |
+		or-adj _ or-n _ and _ or-adj _ or-pln |
+		eh-adj _ eh-n _ and _ eh-adj _ eh-pln |
+		ay-adj _ ay-n _ and _ ay-adj _ ay-pln;
+name:
+               ae-adj _ ae-n |
+		oo-adj _ oo-n |
+		oh-adj _ oh-n |
+		i-adj _ i-n |
+		ih-adj _ ih-n |
+		uh-adj _ uh-n |
+		ee-adj _ ee-n |
+		er-adj _ er-n |
+		or-adj _ or-n |
+		eh-adj _ eh-n |
+		ay-adj _ ay-n;
+thename:
+                the _ ae-adj _ ae-pln |
+                the _ oo-adj _ oo-pln |
+                the _ oh-adj _ oh-pln |
+                the _ i-adj _ i-pln |
+                the _ ih-adj _ ih-pln |
+                the _ uh-adj _ uh-pln |
+                the _ ee-adj _ ee-pln |
+                the _ er-adj _ er-pln |
+                the _ or-adj _ or-pln |
+                the _ eh-adj _ eh-pln |
+                the _ ay-adj _ ay-pln;
+coolbands: cool _ style _ bands | cool _ bands;
+list: "<title>" coolbands "</title><h1>" coolbands "</h1><ul>" b b b b b b b b b b b b "</ul>" tourdates;
+capBandname:cap[ bandname];
+b: "<li>" capBandname;
+tourdates: "<h1>Dates for the 1997" capBandname "Tour</h1><ul>" d d d d d d d d d d "</ul>";
+d: "<li>" place "-" month day soldOut | "<li>" place "-" month day "thru" month day soldOut;
+soldOut: | | | | | | "<b>SOLD OUT</b>";
+month: "Jan" | "Feb" | "Mar" | "Apr" | "May" | "Jun" | "Jul" | "Aug" | "Sep" | "Oct" | "Nov" | "Dec";
+day: "1st" | "2nd" | "3rd" | "4th" | "5th" | "6th" | "7th" | "8th" | "9th" | "10th" | "11th" | "12th" | "13th" | "14th" |
+ "15th" | "16th" | "17th" | "18th" | "19th" | "20th" | "21st" | "22nd" | "23rd" | "24th" | "25th" | "26th" | "27th" |
+ "27th" | "28th" | "29th" | "30th" | "31st" | "32nd";
+place: "Pasedena" | "Bejing" | "Terre Haute" | "Detroit" | "Rekjavik" | "Prague" | "Bombay" | "Paris" | "Mexico City" |
+ "New York City" | "Anchorage" | "Yokohama" | "Baghdad" | "Kansas City" | "Memphis" | "Bonn" | "Amsterdam"|
+ "Havana" | "Cape Town" | "Hong Kong" | "Melbourne" | "Washington D.C." | "Oz" | "Mt. Olympus" | "Valhalla"|
+ "Nantucket"|
+ "Atlantis" | "Brigadoon" | "Gotham";
+ae-adj: "alabaster" | "plaster" | "rancid" | "plastic" | "fast" | "bad" | "flatulent"|
+              "fancy" | "happy" | "grandiose" | "phantom" | "jazzy" | "placid" | "tyrannical"|
+              "jasmine" | "taffeta" | "phallic" | "ratty" | "fatty" | "acid" | "catholic"|
+              "radical" | "flaccid" | "miraculous" | "cast-iron" | "waggish"|
+              "swaggering" | "tacit";
+ae-n:         "bannister" | "catheter" | "mastadon" | "trap" | "shaft" | "pterodactyl"|
+            "sassafrass" | "santa" | "scalpel" | "saran wrap" | "casket" | "allergy"|
+            "landmass" | "bandstand" | "chalice" | "assonance" | "napkin" | "halibut"|
+            "pastor" | "chasm" | "spasm";
+ae-pln: "masters" | "crabs" | "apples" | "answers" | "attitudes" | "cannons"|
+              "hampers" | "actors" | "saplings" | "cattle" | "fanatics" | "tambourines"|
+              "capitalists" | "bananas" | "has-beens" | "gaskets" | "caddies"|
+              "answers" | "dancers" | "cattle";
+oo-adj:         "cool" | "moody" | "groovy" | "cruel" | "amusing" | "loopy" | "soupy" | "huge" | "truant"|
+              "gloomy" | "cartoon" | "useless" | "lunar" | "musical" | "foolish" | "stupid"|
+              "futile" | "feudal" | "choosy" | "mutant";
+oo-n:         "spoon" | "moon" | "food" | "cuticle" | "future" | "saloon" | "noose" | "cubicle"|
+            "caboose" | "doom" | "loofah" | "cucumber" | "moon boot" | "glue gun" | "buffoon"|
+            "twofer" | "sumac" | "poodle" | "strudel" | "floozy" | "tuber";
+oo-pln: "spoons" | "moons" | "shoes" | "tunes" | "huegenots" | "rubles" | "futures" | "pupils"|
+              "moon boots" | "cacoons" | "ruins" | "cubes" | "movies" | "blues" | "tubers" | "tumors"|
+              "students" | "truths" | "noodles" | "uzis";
+oh-adj: "rainbow" | "foaming" | "afro" | "toasted" | "poached" | "moaning" | "phony"|
+              "home-made" | "local" | "open" | "roman" | "chrome" | "holy" | "frozen"|
+              "swollen" | "broken" | "faux" | "roly-poly" | "soapy" | "groaning"|
+              "hopeful" | "soulful" | "soaking" | "droning" | "slow" | "token"|
+              "choking" | "exploding" | "foreboding" | "mediocre" | "yodelling"|
+              "decomposing" | "gloating";
+oh-n:         "toenail" | "sofa" | "soda" | "roadkill" | "phoneme" | "comb" | "loam"|
+            "growth" | "chauffeur" | "poet" | "colon" | "spokesman" | "snow cone"|
+            "beau" | "hobo" | "composer" | "coach" | "petticoat" | "loaf" | "dope"|
+            "pope" | "crone" | "clover";
+oh-pln: "photos" | "toasters" | "roaches" | "toads" | "cloves" | "bones" | "tomes"|
+              "loans" | "hopes" | "foals" | "souls" | "poets" | "trolls" | "jokes" | "drones"|
+              "tones" | "locals" | "locales" | "yokels" | "popes" | "crows" | "modems"|
+              "poachers" | "samoans" | "goats" | "oats" | "polkas" | "cronies";
+i-adj:        "blind" | "kindly" | "sublime" | "fine" | "stymied" | "hired" | "wired" | "tired"|
+              "trying" | "pint-sized" | "nylon" | "nightly" | "tie-dyed" | "whining"|
+              "shiny" | "triangular" | "right-wing" | "spiky" | "polite" | "delightful"|
+              "insightful";
+i-n:         "grinder" | "designer" | "timer" | "pylon" | "siphon" | "twine" | "lime" | "flypaper"|
+            "bicycle" | "slime" | "mime" | "crybaby" | "tripe" | "trifle" | "rifle" | "christ"|
+            "lifeguard" | "riot";
+i-pln: "rinds" | "winos" | "vines" | "diners" | "chimes" | "psyches" | "flights" | "kites"|
+              "pirates" | "heights" | "giants" | "rhymes" | "disciples" | "lifers" | "wives"|
+              "knives" | "hideouts" | "pie fights" | "chives" | "hives";
+ih-adj: "pinched" | "big" | "wiggly" | "silly" | "simple" | "little" | "stiff" | "stippled"|
+ "giga-" | "figurative" | "icky" | "sticky" | "fickle" | "ticklish" | "impish" | "prickly"|
+ "chilly" | "silly";
+ih-n: "bigot" | "inchworm" | "imp" | "piglet" | "chimp" | "ticket" | "simpleton";
+ih-pln: "ingots" | "stigma" | "fingers" | "chiclets" | "widgets" | "squiggles" | "digits"|
+ "killers" | "pillars";
+uh-adj:         "ugly" | "sudden" | "russian" | "plush" | "cuddly" | "comely" | "young"|
+              "junky" | "numb" | "fun" | "pungent" | "yucky" | "hungry" | "funky" | "touchy" | "sunny"|
+              "uppity" | "comfy" | "cunning" | "rusty" | "ruddy" | "bloody" | "trusty" | "nutty"|
+              "runny";
+uh-n:         "junky" | "nun" | "numbskull" | "skull" | "funhouse" | "dunce" | "plunger"|
+            "lunch meat" | "subway" | "lunchbox" | "puppy" | "guppy" | "upstart" | "hut"|
+            "pumice" | "suffix" | "crux" | "buddy" | "money" | "honey";
+uh-pln: "junkies" | "skulls" | "ducks" | "truckers" | "guns" | "tongues" | "crutches"|
+              "lungs" | "cupboards" | "somethings" | "months" | "crusts" | "mothers" | "brothers"|
+              "druthers" | "sundries" | "conundrums" | "drummers" | "summers" | "plumbers"|
+              "cutthroats" | "sucklings" | "fussbudgets" | "suds" | "duds" | "luddites";
+ee-adj: "speedy" | "tweed" | "seedy" | "sleepy" | "elite" | "gleaming" | "green" | "beefy" |
+               "reeking" | "squeamish" | "obsolete" | "leafy" | "bleeding" | "leaky" | "eager"|
+               "sleek" | "oblique" | "senile" | "wheezing" | "freezing" | "squeaky" | "screaming"|
+               "neon" | "bleak" | "concealed" | "weekly" | "meek" | "teeny" | "chic"|
+               "squeaky-clean";
+ee-n:          "canteen" | "wheel" | "heat" | "meat" | "beat" | "cheese" | "beef" | "queef" | "spear"|
+             "schpiel" | "creosote" | "femur" | "wheat germ" | "peashooter"|
+             "beer" | "Pete" | "cheat" | "needle" | "seedling" | "cuisinart" | "speak-easy";
+ee-pln: "believers" | "hedonists" | "seals" | "meanies" | "queens" | "spleens" | "speakers"|
+               "tweezers" | "sneakers" | "feet" | "scenery" | "heathens" | "reefers" |
+               "fleet" | "police" | "meteors" | "plebians" | "teens" | "meanings";
+er-adj:          "burnt" | "worried" | "perfect" | "purple" | "turgid" | "durable" | "hurt" | "thorough"|
+               "surreal" | "hurried" | "concerned" | "furnished" | "demure" | "plural" | "surly"|
+               "curly" | "burly" | "self-assured" | "wordy" | "spurned" | "earnest" | "cursive"|
+               "discursive" | "burdened" | "curdled" | "urban" | "suburban" | "learned" | "quirky"|
+               "perky" | "churning" | "squirming" | "topsy-turvy" | "personal" | "furtive" | "certain";
+er-n:          "virgin" | "curtain" | "surgeon" | "murder" | "dirigible" | "kerchief" | "courage"|
+             "turnpike" | "murderer" | "syrup" | "girdle" | "fervor" | "colonel" | "person"|
+             "curfew" | "percolator" | "squirt" | "servo-mechanism" | "scurvy"|
+             "insurance";
+er-pln: "furniture" | "merchants" | "ferns" | "kernels" | "burns" | "turnstiles"|
+               "germans" | "spurs" | "workers" | "serfs" | "purchases" | "smurfs"|
+               "sermons" | "worms" | "certainty";
+or-adj: "morose" | "poor" | "torn" | "sporty" | "thwarted" | "morbid" | "torrid"|
+               "horrible" | "soaring" | "fortunate" | "coarse" | "shorn" | "portly"|
+               "boring" | "gory" | "pornographic" | "horny" | "forlorn" | "roaring"|
+               "quartz" | "important" | "corny" | "florid" | "swarthy";
+or-n: "coroner" | "court recorder" | "tortellini" | "warlock" | "whore" | "scorn"|
+             "fortune" | "torque" | "porridge" | "sorbet" | "california" | "shortcut"|
+             "hornet" | "born-again" | "cork" | "pork" | "mortgage" | "mortar board";
+or-pln: "boroughs" | "shorts" | "mortuaries" | "horses" | "wars" | "chores" | "thorns"|
+               "borders" | "foreigners" | "warnings" | "tortes" | "reporters" | "resorts"|
+               "mornings" | "lords" | "hordes" | "sporks" | "shorts" | "quarts" | "coronary"|
+               "swords";
+eh-adj:          "leather" | "sedentary" | "bent" | "spent" | "dental" | "seminal" | "separate"|
+               "fettered" | "western" | "festering" | "wet" | "scented" | "dented" | "rented"|
+               "stellar" | "systemic" | "contemporary" | "extra" | "tethered" | "sheltered"|
+               "empty" | "helpless" | "headless" | "pleasant" | "retroactive";
+eh-n: "tent" | "kettle" | "spender" | "placenta" | "headache" | "lemon" | "vessel"|
+             "relevance" | "blender" | "headroom" | "wedding" | "metal" | "pheasant" | "correction";
+eh-pln: "senators" | "weathermen" | "gentlemen" | "hedgehogs" | "endings" | "fellows"|
+               "lentils" | "pencils" | "shepherds" | "fenders" | "shells" | "shelters"|
+               "brethren" | "helpers" | "vegetables";
+ay-adj:          "racial" | "safe" | "raving" | "playful" | "shameful" | "gaping" | "flaming"|
+               "papal" | "racist" | "sprained" | "brainy" | "tame" | "lame" | "lame-brained"|
+               "shapely" | "rakish" | "placated" | "urbane" | "chaste" | "faint";
+ay-n: "hatred" | "haven" | "pacemaker" | "trainer" | "brain" | "train" | "cane" | "flake"|
+             "ape" | "plate" | "namesake" | "rake" | "nation" | "maple" | "haze" | "rainbow";
+ay-pln: "caves" | "rapists" | "tapeworms" | "capers" | "staples" | "crayfish" | "complaints"|
+               "racists" | "newspapers" | "states" | "estates" | "sales";

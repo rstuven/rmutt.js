@@ -1,0 +1,27 @@
+package numbers;
+
+top: (numbers-ordinal.two-digit "\n") {20};
+
+digit: "zero" | nz-digit 9;
+tens-digit: ("twen"|"thir"|"for"|"fif"|"six"|"seven"|"eigh"|"nine")"ty";
+teen: ("thir"|"four"|"fif"|"six"|"seven"|"eigh"|"nine")"teen";
+nz-digit: "one" | "two" | "three" | "four" | "five" | "six" | "seven" | "eight" | "nine";
+two-digit: digit 9 | "ten" | "eleven" | "twelve" |
+ teen 7 |
+ tens-digit 8 |
+ tens-digit "-" nz-digit 72;
+
+street-number:
+ (nz-digit 8 | teen 4 | two-digit) " "
+ (digit: "oh " nz-digit) two-digit;
+
+package numbers-ordinal;
+
+digit: "zeroth" | nz-digit 9;
+tens-digit: ("twen"|"thir"|"for"|"fif"|"six"|"seven"|"eigh"|"nine")"tieth";
+teen: ("thir"|"four"|"fif"|"six"|"seven"|"eigh"|"nine")"teenth";
+nz-digit: "first" | "second" | "third" | "fourth" | "fifth" | "sixth" | "seventh" | "eighth" | "ninth";
+two-digit: digit 9 | "tenth" | "eleventh" | "twelfth" |
+ teen 7 |
+ tens-digit 8 |
+ numbers.tens-digit "-" nz-digit 72;

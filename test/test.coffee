@@ -13,6 +13,16 @@ expectc = (source, expected) ->
 
 describe 'rmutt', ->
 
+  it.skip 'examples', ->
+    fs = require 'fs'
+    source = fs.readFileSync __dirname + '/../examples/eng.rm', 'utf8'
+    source = source.replace(/^\uFEFF/, '');
+    source = source.replace(/\n\r/g, '\c');
+    # console.log source
+    compiled = rmutt.compile source, workingDirectory: __dirname + '/../examples/'
+    console.log compiled.toString()
+
+
   it 't10 - transformation chaining', ->
     source = """
     thing: name
@@ -305,7 +315,7 @@ describe 'rmutt', ->
     tests:
      local.top " "
      global.top " "
-     outer.top " "
+     parent.top " "
     ;
 
     package local;
@@ -316,7 +326,7 @@ describe 'rmutt', ->
     B: (X="2") C X;
     C: (X="3") X;
 
-    package outer;
+    package parent;
 
     top: A X;
 
@@ -333,7 +343,7 @@ describe 'rmutt', ->
     C: ($X="3") X;
     """
 
-    expect(rmutt.generate source).to.equal '321local.X 2213 331outer.X '
+    expect(rmutt.generate source).to.equal '321local.X 2213 331parent.X '
 
   it 't18 - imports', ->
     source = """

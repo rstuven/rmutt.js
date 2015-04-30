@@ -1,0 +1,165 @@
+#include "eng.rm"
+#include "numbers.rm"
+#include "chars.rm"
+#include "util.rm"
+
+package directions;
+
+// in-town directions: streets, intersections, signs, places of interest
+// in-building directions: floors, stairs, elevators, rooms
+// transitions:
+// - town to building (arrive at and enter building)
+// - building to town (exit building and rejoin street network)
+
+// places of interest:
+// - church
+// - restaurant
+// - library
+
+// special building interiors:
+// - hospital
+// - restaurant
+
+// streets:
+// - "45th" street
+
+import street-number from numbers;
+import tc,cap from util;
+
+top: town-wander[street,street] "You'll be right back where you started.\n";
+
+_:" ";
+
+// streets
+street-name: tc[eng.noun_singular | eng.noun_place | numbers-ordinal.two-digit];
+street-type: tc["street" 3 | "avenue" 3 | "boulevard" | "lane" | "drive"];
+map-direction: "North" | "South" | "East" | "West";
+street: tc[(map-direction _)? street-name (_ street-type)?];
+
+// address
+street-address[st]: street-number _ st;
+
+// intersection
+int-name: "intersection" | "corner";
+intersection[prev,next]:
+ "the " int-name " of " prev " and " next;
+
+// town-distance
+town-distance: (numbers.nz-digit " blocks") > /one (.+)s/one \1/;
+
+// street-network
+town-travel[distance]:
+ ("continue"|"go"7) _ (("about"|"approximately")_)? distance;
+
+town-travel-back[distance]:
+ ("go back"|"head back"|"go")_
+ (("about"|"approximately")_)? distance;
+
+turn-direction: "left" | "right";
+reverse-turn[dir]:
+  dir > /(.).*/\1/ > /r$/left/ > /l$/right/;
+
+hanga[dir]: ("turn" | "hang a") _ dir;
+at: "when you " ("get to"|"arrive at"|"make it to") | "at";
+
+town-turn[prev,next,dir]:
+ (at _ (next|intersection[prev,next]) "," _ hanga[dir]) |
+ hanga[dir] _ ("onto"|at) _ next;
+
+town-pass[thing]:
+ ("continue past"|"you'll pass"|"go past") _ thing _ "on the" _ ("left"|"right");
+
+town-wander[prev,next]:
+ (prev-distance = town-distance)
+ (dir = turn-direction)
+ (landmark = town-landmark[prev]|3)
+ cap[town-travel[prev-distance] _ "on" _ prev ".\n"]
+ cap[landmark > /./ % (town-pass[landmark] ".\n")]
+ cap[town-turn[prev,next,dir]]
+ (".\n" town-wander[next,street] 4 |
+  (next-distance = town-distance)
+  (building = town-building[next])
+  " and " town-travel[next-distance] " until you " town-arrive-at[building] ".\n"
+  cap[town-enter[building,next] ".\n"]
+  cap[int ".\n"]
+  cap[town-exit[building,next] ".\n"]
+  cap[town-travel-back[next-distance] ".\n"])
+ cap[town-turn[next,prev,reverse-turn[dir]] ", then "
+     town-travel-back[prev-distance,prev]]
+ cap[landmark > /./ % town-repass[landmark]]
+ ".\n"; 
+
+town-repass[landmark]:
+ (l = landmark > /^a (.*)/the \1/)
+ (", passing " l " again" |
+ ".\nYou'll see " l " again" |
+ " back past " l);
+
+town-landmark:
+ "a gas station" |
+ "a cell-phone tower" |
+ "a " eng.noun_singular " " ("store"|"shop"|"stand") |
+ "a drugstore" |
+ "a " ("small"|"large") " apartment " ("building"|"complex") |
+ town-building-any-street;
+
+town-arrive-at[place]:
+ ("reach"|"arrive at"|"get to")_ place;
+
+town-building[street]:
+  street-address[street] |
+  "the" _ street _ ("church"|"train station"|"YMCA"|"library") |
+  town-building-any-street;
+
+town-building-any-street:
+  "the " eng.noun_place _ ("building"|"institute"|"center") |
+  tc[eng.noun_name "'s" (_ eng.noun_singular _ ("shack"|"palace"|"hut"))?] |
+  "Saint " eng.noun_name "'s" _ ("chapel"|"cathedral"|"church") |
+  "the" _ ("police"|"fire") _ "station" |
+  ("W"|"K") chars.uc{3};
+
+building-door:
+  "the "
+  ("front"|"back"|"side"|"street-facing"|"rear-facing"|map-direction) _
+  ("door"|"entrance"|"gate");
+
+enter-find:"locate"|"find"|"go to the";
+
+town-enter[building,street]:
+ ("enter"|"go into"|"gain entrance to")
+ _ building
+ (_ ("through"|"via") _ building-door)
+| enter-find " the " building-door " that's "
+ ("right on"|"down a little bit from"|"set back a bit from") _
+ ("the street"|street)
+ " and enter the building";
+
+town-exit[building,street]:
+ ("exit"|"leave"|"head out of") _ (building|"the building")
+ ( " onto " street | "; you'll be back on " street);
+
+// interiors
+//
+
+int:
+ "Once inside, " int-travel ", and go to room " street-number ".\n"
+ "On the desk will be a " int-book ". Sign your name in it.\n"
+ cap[("take the" _ int-lift _ "back to" _ int-entrance |
+  ("go back"|"return") _ "to" _ int-entrance _ "on" _ int-lift)]
+;
+
+int-entrance:
+ "the" _ ("entrance"|"door") (_ "you came in");
+
+int-book:
+ "book with the word \"" cap[eng.noun_singular] "\" written on the cover";
+
+int-lift:
+ "the" _ ("service "? "elevator"|"stairs"|"escalator");
+
+int-travel:
+ "Take" _ int-lift _
+ "to the " numbers-ordinal.two-digit " floor" |
+ "Go" _ ("up"|"down") _ (numbers.nz-digit _ ("floors"|"stories"))>/one (.+)s/one \1/
+ ("on the" _ int-lift)?;
+

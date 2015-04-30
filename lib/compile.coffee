@@ -5,8 +5,8 @@ transpile = require './transpile'
 ###
 # compile
 ###
-module.exports = (source) ->
-  rules = parse source
+module.exports = (source, config) ->
+  rules = parse source, config
   compiled = new Function '$config', transpile rules
   # console.log compiled.toString()
   compiled

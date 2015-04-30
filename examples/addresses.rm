@@ -1,0 +1,14 @@
+#include "eng.rm"
+#include "chars.rm"
+#include "util.rm"
+
+address:
+  eng.noun_name " " eng.noun_singular>util.xcap "\n"
+  chars.digit{3} " " ("N"|"S"|"E"|"W")". " streetname "\n"
+  eng.noun_place ", " state " " chars.digit{5} "\n";
+
+streetname: sn_word>util.xcap " " sn_type ".";
+sn_type: "St" | "Ave" | "Rd" | "Blvd" | "Dr";
+sn_word: eng.noun_singular | eng.noun_name | eng.noun_place;
+state: chars.uc{2};
+  

@@ -1,0 +1,55 @@
+#include "grammar.rm"
+
+qs: (q > util.xcap){20};
+
+q: (who|what|where|when|why|how|whose|which) "?\n";
+
+who: "who " (
+  eng.verb_intrans_past // who farted?
+| eng.verb_trans_past " " grammar.det_np // who ate the large earlobe?
+| ("do"|"did"|"will"|"can") " " oet // who did everyone hate?
+);
+
+what: "what " (
+  ("are"|"were") " " eng.noun_plural " " eng.verb_trans_gerund // what are we thinking?
+| ("do"|"did"|"will"|"can") " " oet // what will fools decide?
+);
+
+where: "where " (
+  ("do"|"did"|"can") " " o // where do shrews collect buttons?
+);
+
+when: "when " (
+  ("do"|"did"|"will") " " o // when will cars collapse?
+);
+
+why: "why " (
+  ("not ")? eng.verb_intrans_inf // why breathe?
+| ("not ")? eng.verb_trans_inf " " grammar.np // why not adjust perfect smudges?
+| ("do"|"don't"|"can"|"can't") " " o // why do people need clams?
+);
+
+how: "how " (
+  ("do"|"can") " " o // how can people see?
+);
+
+whose: "whose " grammar.np " " grammar.vp_past;
+which: "which " grammar.np " " grammar.vp_past;
+
+oei: ( // e.g., "pigs fly"
+  subj " " eng.verb_intrans_inf
+);
+
+oet: ( // e.g., "pigs eat"
+  subj " " eng.verb_trans_inf
+);
+
+o: (
+  oei
+| oet " " grammar.det_np
+);
+
+subj: (
+  eng.noun_plural |
+  grammar.spn_p
+);

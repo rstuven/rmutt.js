@@ -1,0 +1,45 @@
+#include "eng.rm"
+#include "util.rm"
+
+package grammar;
+
+det_np: det_np_s | det_np_p;
+det_np_s:
+ (det " " snp) > util.xan;
+det_np_p:
+ "the " pnp |
+ pn_poss " " pnp;
+np: snp | pnp;
+snp: eng.adv " " eng.adj " " eng.noun_singular |
+     eng.adj " " eng.noun_singular 2|
+     eng.noun_singular 4;
+pnp: eng.noun_plural 4 |
+    eng.adj " " eng.noun_plural 2 |
+    eng.adv " " eng.adj " " eng.noun_plural;
+art: "a"|"the";
+det: art | pn_poss;
+pn_poss: "my" | "your" | "her" | "his" | "their" | "our";
+
+spn_s: ("I"|"you"|("he"|"she")|"it");
+spn_p: ("we"|"you"|"they");
+spn: spn_s | spn_p;
+
+opn_s: ("me"|"you"|("her"|"him")|"it");
+opn_p: ("us"|"you"|"them");
+opn: opn_s | opn_p;
+
+subj: pnp | det_np | spn | eng.noun_name;
+obj: pnp | det_np | opn | eng.noun_name;
+
+vp_intrans_past: (
+  eng.verb_intrans_past
+);
+vp_trans_past: (
+  eng.verb_trans_past " " obj
+);
+vp_past: vp_trans_past | vp_intrans_past;
+
+cc: "and"|"so"|"but";
+
+sc:"because"|"if"|"while"|"when"|"although"|
+"even if";

@@ -1,0 +1,211 @@
+#include "util.rm"
+
+import cap,tc from util;
+top: RECIPE;
+_:" ";
+Prelude:  "Dear Adam,\n Here's a sampling of the recipes I've been developing.\nIf any of them sound good let me know and I'll send the full text.\n\n"
+;Body:  RECIPE
+;Ending:  "\n\nHope you like them. \n Joe"
+;QUANT-INGRED-PL:  "eggs" | "onions" | "bananas" | "clams" | "peppers"
+| "zucchinis" | "tomatos" | "eggplants" | "apples" | "oranges" | "kiwis"
+| "carrots" | "cornish game hens" | "ducks" | "chicken wings" | "melons"
+| "artichokes" | "avocados" | "guavas" | "mangos" | "pheasants" | "jalapenos"
+| "raisins" | "garlic cloves" | "olives" | "turkeys" | "chickens"
+;QUANT-INGRED:  "egg" | "onion" | "banana" | "clam" | "pepper"
+| "zucchini" | "tomato" | "eggplant" | "apple" | "orange" | "kiwi"
+| "carrot" | "cornish game hen" | "duck" | "chicken wing" | "melon"
+| "artichoke" | "avocado" | "guava" | "mango" | "pheasant" | "jalapeno"
+| "raisin" | "garlic clove" | "olive" | "turkey" | "chicken"
+;VOL-INGRED:  "broth" | "flour" | "sugar" | "yogurt" | "butter"
+| "vegetable oil" | "olive oil" | "vinegar" | "tobasco sauce"
+| "catsup" | "mayonnaise" | "soy sauce" | "water" | "milk" | "buttermilk"
+| "coconut milk" | "brazil nuts" | "peanuts" | "cocoa" | "chocolate chips"
+| "raisins" | "garbanzo beans" | "pinto beans" | "black beans" | "chickpeas"
+| "lima beans" | "navy beans" | "green beans" | "peas" | "white rice"
+| "basmati rice" | "jack cheese" | "unsweetened baking chocolate"
+| "sand" | "Rice Krispies cereal" | "canola oil" | "baking soda"
+| "baking powder"
+;WEIGHT-INGRED:  "cheese" | "broccoli" | "spinach" | "beef" | "pork"
+| "chicken" | "veal" | "chard" | "venison" | "tofu" | "salmon" | "pasta"
+| "linguine" | "macaroni" | "lettuce" | "corn" | "asparagus" | "bok choy"
+|  "squid" | "shrimp" | "coffee" | "tripe" | "mutton"
+;VOL-UNIT:  "teaspoon" | "tablespoon" | "cup" | "quart" | "pint"
+| "package" | "bag" | "carton" | "bottle" | "jar"
+;SPICE-UNIT:  "teaspoon" | "tablespoon" | "packet"
+;DASH:  "dash" | "pinch"
+;SPICE:  "cumin" | "cayenne pepper" | "coriander" | "mustard seed"
+| "cream of tartar" | "salt" | "pepper" | "nutmeg" | "basil" | "oregano"
+| "tarragon" | "cinnamon" | "chives" | "cloves" | "garlic" | "cilantro"
+| "saffron"
+;WEIGHT-UNIT:  "pound" | "gram" | "ounce"
+;FRAC:  "1/8" | "1/4" | "1/3" | "1/2" | "2/3" | "3/4"
+;INGRED-MOD-AFTER:  "chopped" | "peeled" | "diced" | "rinsed and drained"
+| "shredded" | "minced or pressed" | "finely chopped"
+| "cut into 1-inch strips" | "thinly sliced" | "well-scrubbed" | "dried"
+| "pureed" | "sectioned"
+;INGRED-MOD-BRAND:  "FLAVO-WHOOPS" | "KRAFT" | "NABISCO" | "NECCO"
+| "MR. KLEEN" | "IBM" | "Aunt Jemima" | "Bob Smith's Homestyle" | "LEVI'S"
+| "DR. SCHOLL'S"
+;JSQ-ADJ:  "savory" | "fresh" | "home-made" | "hand-picked" | "traditional"
+| "garden-fresh" | "pickled" | "tangy" | "sun-dried" | "imported"
+;JSQ-TOUCH:  "touch" | "dose" | "semblance" | "bit" | "smidgen"
+;JSQ:  "je ne sais quoi" | "class" | "old-world flavor" | "zest"
+| "bitterness" | "sweetness" | "color" | "vibrancy" | "perspicacity"
+| "personality"
+;TRY:  "serve this at" | "try this at" | "bring this to" | "spring this on"
+|        "serve at" | "bring it to" | "try it at" | "try at"
+|        "good for"
+;OCCASION:  "birthday" | "wedding" | "apocolypse"
+|  "picnic" | "brunch" | "church meeting" | "informal get-together"
+|  "office party" | "breakfast" | "dinner" | "power lunch"
+|  "baby shower" | "clambake"
+;PERSONS:  "family's" | "in-laws'" | "office's" | "church's"
+|           "glee club's" | "kids'"
+;OCCASIONAL:  "your" _ PERSONS _ "next" 7
+|              "this year's" 2 | "any outdoor"
+;TRY-THIS:   TRY _ OCCASIONAL _ OCCASION  ".<br>" 10
+;NAME-FIRST:  "savory" | "grandma's" | "boiled" | "hong kong"
+| "italian" | "thai" | "spicy" | "hot" | "cream of" | "southern"
+| "steamed" | "baked" | "hunan" | "barbeque" | "stuffed" | "easy"
+| "no-bake" | "elegant" | "surprise" | "homestyle" | "roasted" | "deep-fried"
+|  "char-broiled" | "broiled"
+;NAME-LAST:  "a la mode" | "flambe"
+| "mexicana" | "parfait" | "au gratin" | "du jour" | "pilaf" | "au jus"
+| "kentucky style" | "under glass" | "aldente" | "on a stick"
+;NAME-TYPE:  "casserole" | "sticks" | "pie" | "soup" | "burrito"
+| "lasagna" | "roast" | "brochettes" | "salad" | "quiche" | "torte"
+| "fudge" | "cookies" | "pizza" | "cutlets" | "loaf" | "pancakes" | "swirls"
+| "waffles" | "pesto" | "polenta" | "stew" | "tarts" | "souffle"
+| "crepes" | "chimichangas" | "borscht" | "vichyssoise" | "chowder"
+| "cake" | "crisps" | "spread" | "dip" | "dumplings" | "muffins"
+| "triangles" | "falafel" | "bread" | "donuts" | "squares" | "circles"
+| "clusters" | "log" | "fricasse" | "omlettes" | "muffins" | "bread"
+;NAME:  cap[NAME-FIRST _ NAME-INGRED _ NAME-TYPE _ NAME-LAST]
+;NAME-INGRED:  WEIGHT-INGRED | QUANT-INGRED
+;PREMIX:  "in a large bowl" | "in a mixing bowl"
+| "in a small bowl" | "in an ungreased baking pan" | "in a large saucepan"
+| "by hand, or with a food processor" | "with an electric mixer"
+| "with a wooden spoon or heavy-duty electric mixer"
+;MIX:  "combine" | "mix" | "grind" | "mash" | "stir" | "puree" | "press"
+;POSTMIX:  "until done" | "until lumps disappear" | "into a fine powder"
+| "for two to three minutes" | "until a knife comes out clean"
+| "until stiff peaks form" | "forming a thick paste"
+;IV:  "chill" | "set aside" | "beat" | "let stand" | "let rise"
+| "sautee" | "bake" | "thaw" | "rinse" | "drain" | "strain" | "sift"
+| "broil" | "fry" | "deep-fry" | "char-broil"
+;POSTIV:  "for three hours" | "until mixture is transparent"
+| "while you continue with the steps below"
+| "until it attains the desired consistency"
+| "just until warm" | "over a low heat"
+| "until no more lumps remain"
+| "until mixture springs back when touched" | "until tender"
+| "for two to three minutes"
+;ADD:  "add" | "beat in" | "fold in" | "mix in"
+;POSTADD:  "one teaspoon at a time" | "stirring occasionally"
+| "reserving 1/4 cup for later"
+;PREP-FIRST:  ADC-PREP-FIRST "." 10
+;ADC-PREP-FIRST:  "preheat oven to 425" | "grease one large baking pan"
+| "wash and sterilze five 8-oz jars"
+| "heat oil in a wide frying pan over medium heat"
+| "melt butter in a 4-5 quart saucepan"
+| "boil three quarts of water"
+| "whisk together all ingredients"
+| "preheat oven"
+| "let ingredients sit overnight"
+| "thaw ingredients overnight"
+| "thaw ingredients"
+| "purchase ingredients"
+| "scrub kitchen"
+| "prep three baking sheets"
+| "prep two bowls"
+| "prep a cutting board"
+| "prepare soup stock"
+| "prepare stock"
+| "peruse refrigerator"
+| "preheat toaster"
+;PREP-MIDDLE:  "lower the heat" | "keep covered" | "stir occasionally"
+| "gradually increase the temperature" | "form into patties"
+| "brush lightly with olive oil"
+;GARNISH:  "garnish with" | "sprinkle on" | "cover with"
+| "add a pinch of" | "season with" | "flavor with" | "add sprigs of"
+| "add fresh"
+;TO-TASTE:  " to taste" | ", if desired"
+;SERVE:  "under glass" | "on a wire rack" | "in 3-oz bowls"
+| "on a bed of lettuce" | "cold" | "hot" | "flambe" | "with chutney"
+| "with ketchup" | "immediately" | "on chilled plates"
+;MIXTURE:  "mix" | "mixture" | "dough" | "paste" | "filling"
+;RECIPE:  "<h1>" tc[NAME] "</h1>\n" cap[COMMENTS] _ cap[TRY-THIS] "<br>\n<h2><i>Ingredients:</i></h2><ul>"  INGREDS "</ul><br>\n"  INSTRUCTIONS "<br>\n"
+;INSTRUCTIONS:  "<h2><i>Instructions:</i></h2>"  cap[PREP-FIRST] _ INST-BODY _ cap[GARNISH-P] _ cap[SERVE-P] _ cap[SERVES]
+;INST-BODY:  IB
+|             IB _ IB
+|             IB _ IB _ IB
+|             IB _ IB _ IB _ IB
+|             IB _ IB _ IB _ IB _ IB
+|             IB _ IB _ IB _ IB _ IB _ IB
+|             IB _ IB _ IB _ IB _ IB _ IB _ IB
+;IB:  cap[IB2];
+IB2: MIX-P 15
+|      IV _ POSTIV "." 14
+|      ADD _ II "," _ POSTADD "." 13
+|      ADD _ II "."  13
+|      PREP-MIDDLE "." 8
+;MIX-P:  PREMIX ","  _ MIX _ II-LIST _ POSTMIX "."
+|        MIX _ II-LIST _ POSTMIX "."
+;II:ART _ VOL-INGRED
+|      ART _ QUANT-INGRED-PL | ART _ WEIGHT-INGRED
+|      ART _ SPICE | QUANT-INGRED-PL | WEIGHT-INGRED | SPICE
+|      VOL-INGRED
+;ART:  "the" | "some of the" | "most of the" | "the rest of the"
+|       "some" | "the remaining" | "fresh" | "half of the"
+|       "frozen" | "defrosted" | "pre-basted"
+;II-LIST:  II _ "and" _ II | II "," _ II _ "and" _ II
+|           II "," _ II "," _ II _ "and" _ II
+;GARNISH-P:  GARNISH _ SPICE TO-TASTE "." 10
+;SERVE-P:  ADC-SERVE-P 10
+;ADC-SERVE-P:  "Serve" _ SERVE "." | "Offer it" _ SERVE "."
+|           "Eat it" _ SERVE "." | "Have it" _ SERVE "."
+;SERVES:  "<br><br>" ADC-SERVES 10
+;ADC-SERVES:  "Serves" _ QUANT "." | "Makes enough for" _ QUANT "."
+|          "Good for" _ QUANT "." | "Yields" _ QUANT _ "servings."
+|          "Yields" _ QUANT _ "helpings." | "Yield:" _ QUANT _ "servings"
+|          "Yield:" _ QUANT _ "helpings"
+;COMMENTS:   DONT _ OVERDO-IT "!" | "<b></b>" |   JSQ-phrase "."
+;DONT:  "don't" | "make sure not to" | "careful, don't"
+|        "take care not to" | "be careful not to"
+|        "it's easy to" | "careful not to"
+;OVERDO-IT:  ADD _ TOO-MUCH | OVERCOOK _ "the" _ QUANT-INGRED-PL
+;OVERCOOK:  "overcook" | "burn" | "scorch" | "crisp"
+|            "sear" | "overdo"
+;TOO-MUCH:  "too much" _ VOL-INGRED | "too many" _ QUANT-INGRED-PL
+|            "too large a" _ QUANT-INGRED | "too small a" _ QUANT-INGRED
+|            "excessive" _ WEIGHT-INGRED | "more" _ SPICE _ "than you need"
+|            "not enough" _ VOL-INGRED | "too few" _ QUANT-INGRED-PL
+|            "not enough" _ WEIGHT-INGRED | "lots of" _ SPICE
+;JSQ-phrase:  JSQ-ADJ _ QUANT-INGRED-PL _ IMPART _ JSQ _ TO-THIS
+;IMPART:  "add a" _ JSQ-TOUCH _ "of" | "impart" | "lend"
+|          "give this a" _ JSQ-TOUCH _ "of"
+;TO-THIS:  "to this recipe" 10 | ", but" _ QUANT-INGRED-PL _ IMPART _ JSQ
+;INST-INGRED:  QUANT-INGRED | QUANT-INGRED-PL | VOL-INGRED | WEIGHT-INGRED
+|                SPICE
+;INGREDS:  ING ING ING ING
+|           ING ING ING ING ING
+|           ING ING ING ING ING ING
+|           ING ING ING ING ING ING ING
+|           ING ING ING ING ING ING ING ING
+|           ING ING ING ING ING ING
+|           ING ING ING ING ING ING ING
+|           ING ING ING ING ING ING ING ING
+|           ING ING ING ING ING ING ING ING ING
+|           ING ING ING ING ING ING ING ING ING ING ING ING ING ING ING ING
+;ING:  "<li>" INGb "<br>\n"
+;SPICE-INGRED:  FRAC _ SPICE-UNIT _ SPICE | "a" _ DASH _ "of" _ SPICE
+;INGb:  SPICE-INGRED
+|       QING
+|       VOL _ VOL-UNIT _ VOL-INGRED
+|       WEIGHT _ WEIGHT-UNIT _ WEIGHT-INGRED
+;QUANT:  "2" | "3" | "4" | "5" | "6" | "10"
+;VOL:  "1" | "1" _ FRAC | QUANT | QUANT _ FRAC
+;WEIGHT:  VOL
+;QING:  SUBQING | SUBQING "," _ INGRED-MOD-AFTER
+;SUBQING:  "1" _ QUANT-INGRED | QUANT _ QUANT-INGRED-PL
+;

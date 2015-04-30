@@ -1,0 +1,28 @@
+#include "dialogue.rm"
+
+story: (
+  ((description|dialogue.dialogue)>util.xcap){10,20}
+);
+
+description: (
+  desc_clause ".\n" |
+  desc_clause ", " grammar.cc " " desc_clause ".\n"
+);
+
+desc_clause: (
+  grammar.det_np_s " "
+    ("was""n't"?|("had""n't"?|("c"|"sh"|"w")"ould""n't"?" have")" been")
+    " "
+    eng.verb_past_part (" " eng.adv|", " fwiw)? |
+  (dialogue.sub_clause ", ")? dialogue.statement
+);
+
+fwiw: (
+  "for once"|"at long last"|"for a change"|
+  "as a matter of fact"|"if you must know"|
+  "if you can believe that"|"for what it's worth"|
+  "for instance"
+);
+
+
+

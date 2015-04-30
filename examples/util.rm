@@ -1,0 +1,37 @@
+// generic utilities for English text
+package util;
+
+// convert text to uppercase
+xuc: /a/A/ /b/B/ /c/C/ /d/D/ /e/E/ /f/F/ /g/G/ /h/H/ /i/I/ /j/J/ /k/K/
+     /l/L/ /m/M/ /n/N/ /o/O/ /p/P/ /q/Q/ /r/R/ /s/S/ /t/T/ /u/U/ /v/V/
+     /w/W/ /x/X/ /y/Y/ /z/Z/;
+uc[text]: text > xuc;
+// capitalize
+xcap: /^a/A/ /^b/B/ /^c/C/ /^d/D/ /^e/E/ /^f/F/ /^g/G/ /^h/H/ /^i/I/
+      /^j/J/ /^k/K/ /^l/L/ /^m/M/ /^n/N/ /^o/O/ /^p/P/ /^q/Q/ /^r/R/
+      /^s/S/ /^t/T/ /^u/U/ /^v/V/ /^w/W/ /^x/X/ /^y/Y/ /^z/Z/;
+cap[text]: text > xcap;
+// convert text to lowercase
+xdc: /A/a/ /B/b/ /C/c/ /D/d/ /E/e/ /F/f/ /G/g/ /H/h/ /I/i/ /J/j/ /K/k/
+     /L/l/ /M/m/ /N/n/ /O/o/ /P/p/ /Q/q/ /R/r/ /S/s/ /T/t/ /U/u/ /V/v/
+     /W/w/ /X/x/ /Y/y/ /Z/z/;
+dc[text]: text > xdc;
+// title case
+xtc: /\ba/A/ /\bb/B/ /\bc/C/ /\bd/D/ /\be/E/ /\bf/F/ /\bg/G/ /\bh/H/
+     /\bi/I/ /\bj/J/ /\bk/K/ /\bl/L/ /\bm/M/ /\bn/N/ /\bo/O/ /\bp/P/
+     /\bq/Q/ /\br/R/ /\bs/S/ /\bt/T/ /\bu/U/ /\bv/V/ /\bw/W/ /\bx/X/
+     /\by/Y/ /\bz/Z/;
+tc[text]: text > xtc;
+
+// change "a" to "an" when before a word starting in a vowel
+xan: /([Aa]) ([aeiouAEIOU])/\1n \2/;
+an[text]: text > xan;
+
+// create a list like "a, b, and c" from a sequence like this:
+// "foo, bar, baz, " [note the trailing space]
+list: 
+  /, ([^,]+), ([^,]+), $/, \1, and \2/
+  /, ([^,]+), $/ and \1/
+  /([^,]+), $/\1/;
+flist[text]: text > list;
+

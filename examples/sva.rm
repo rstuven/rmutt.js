@@ -1,0 +1,85 @@
+#include "eng.rm"
+#include "util.rm"
+
+// this is a demonstration of subject-verb agreement using non-local binding
+import cap from util;
+import noun_singular,noun_plural from eng;
+import verb_trans_past,verb_intrans_past from eng;
+
+top: cap[s] "\n";
+s: clause ".";
+_: " ";
+
+clause: (person=) (number=) np["subject"] _ vp["trans"|"intrans"];
+np[sense]:
+ (^number="1"|"2") (
+   (^person="3") util.an[art _ noun] |
+   (^person="1"|"2"|"3") pronoun[sense]
+ )
+ (paren|2);
+paren:
+ " (who " (person=) (number=) np["subject"] _ v["trans"] ")";
+noun:
+ number >(
+   "1" % noun_singular
+   "2" % noun_plural
+ );
+art:
+ number >(
+   "1" % ("a"|"the")
+   "2" % "the"
+ );
+pronoun[sense]:
+ sense >(
+   "subject" % subj_pronoun
+   "object" % obj_pronoun
+ );
+subj_pronoun:
+ number >(
+   "1" % (person >(
+     "1" % ("I")
+     "2" % ("you")
+     "3" % ("he"|"she"|"it"))
+   ) "2" % (person >(
+     "1" % ("we")
+     "2" % ("you")
+     "3" % ("they"))
+   )
+ );
+obj_pronoun:
+ number >(
+   "1" % (person >(
+     "1" % ("me")
+     "2" % ("you")
+     "3" % ("him"|"her"|"it"))
+   ) "2" % (person >(
+     "1" % ("us")
+     "2" % ("you")
+     "3" % ("them"))
+   )
+ );
+
+v[trans]:
+   tohave _ trans >(
+     "intrans" % verb_intrans_past
+     "trans" % verb_trans_past
+   );
+vp[trans]:
+ v[trans] (
+   trans >(
+     "trans" % (_ np["object"])
+   )
+ );
+tohave:
+ number >(
+   "1" % (person >(
+     "1" % "have"
+     "2" % "have"
+     "3" % "has")
+   ) "2" % (person >(
+     "1" % "have"
+     "2" % "have"
+     "3" % "have")
+   )
+ );
+

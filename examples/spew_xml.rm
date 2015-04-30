@@ -1,0 +1,28 @@
+#include "eng.rm"
+#include "sentence.rm"
+#include "url.rm"
+#include "xml.rm"
+
+package spew_xml;
+
+import pi,attr,start,end,empty from xml;
+import noun_singular from eng;
+import url from url;
+
+doc: pi["xml",attr["version","1.0"]] "\n" (indent="") tag "\n";
+
+tag: (n=name) (
+  indent empty[n,attrs],
+  indent start[n,attrs] "\n" (node "\n"){1,6} indent end[n] 5
+);
+
+name: noun_singular > /[^A-Za-z]/_/;
+attrs:
+ (sattr{0,3})>/^ //;
+
+sattr:
+  " " attr[name,(name 5 | url)];
+
+node: (indent=(indent "  ")) (tag | indent text 2);
+
+text: sentence.s;

@@ -1,0 +1,16 @@
+#include "eng.rm"
+#include "chars.rm"
+
+graph: "digraph foo {\n" fs "}\n";
+fs: (directory=name) node nodes;
+node: file ";\n" | dir;
+file: directory " -> " name;
+dir: directory " -> " (directory=name) directory ";\n" nodes;
+name: eng.noun_singular > /[^A-Za-z]/_/;
+nodes:
+  node{0} 32
+| node{1} 16
+| node{2} 8
+| node{3} 4
+| node{4} 2
+| node{5} 1;

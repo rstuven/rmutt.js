@@ -171,7 +171,7 @@ makeTreeLeftRecursive = (node, type, left, right, fifo) ->
 assignment = (rule, evalued) ->
   scope = switch rule.scope
     when 'local' then 'l'
-    when 'outer' then '^'
+    when 'parent' then '^'
     else 'g'
     # when 'non_local' then '^'
     # else 'g'

@@ -1,0 +1,14 @@
+#include "eng.rm"
+#include "util.rm"
+#include "chars.rm"
+
+// imports
+import cap from util;
+import noun_singular,noun_plural,adj,noun_name from eng;
+
+top: cap[title] "\n";
+title: noun_singular " " noun_plural ": " p;
+p: adj " " noun_plural " in " mileu;
+mileu: cap[noun_name] "ian " discipline;
+discipline: noun_singular ("ology"|"ics");
+

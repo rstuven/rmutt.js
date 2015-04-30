@@ -1,0 +1,23 @@
+#include "eng.rm"
+#include "util.rm"
+#include "chars.rm"
+
+import an,cap from util;
+import digit from chars;
+import verb_trans_gerund,verb_intrans_gerund from eng;
+import adv,adj,noun_singular,noun_plural from eng;
+
+slogans: slogan{10};
+slogan: cap[gvp] " since " year ".\n";
+year: ("19"|"20") digit{2};
+gvp: gvp_trans | gvp_intrans;
+gvp_trans: advp verb_trans_gerund " " np;
+gvp_intrans: advp verb_intrans_gerund;
+np: snp | pnp;
+snp: art[adv] " " adj " " noun_singular |
+    art[adj] " " noun_singular |
+    art[noun_singular];
+pnp:((adv " ",) adj " ",) noun_plural;
+art[p]: an[("a"|"the") " " p];
+advp: (adv " "|);
+

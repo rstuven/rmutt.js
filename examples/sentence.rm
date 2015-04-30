@@ -1,0 +1,75 @@
+#include "eng.rm"
+#include "util.rm"
+
+package sentence;
+
+import cap,an from util;
+import verb_intrans_past,verb_trans_past from eng;
+import noun_singular,noun_plural,noun_name from eng;
+import adj,adv from eng;
+
+line: cap[s] "\n";
+
+s:
+  subject " " (
+    verb_trans_past " " object 3 | qualified_verb_intrans_past
+  ) "."
+;
+subject: (sense="subject") np;
+object: (sense="object") np;
+np:
+  (person="1","2","3")
+  (number="singular","plural")
+  (animate="y"4,"n")
+  n;
+n: animate >(
+  "y" % actor
+  "n" % thing
+);
+thing: number >(
+  "singular" % ((noun=noun_singular) qualifiedNoun)
+  "plural" % ((noun=noun_plural) qualifiedNoun)
+);
+actor: number >(
+  "singular" % (noun_name, pronoun)
+  "plural" % (pronoun)
+);
+pronoun: sense >(
+  "subject" % (number >(
+    "singular" % (person >(
+      "1" % "I"
+      "2" % "you"
+      "3" % ("he","she"))
+    ) "plural" % (person >(
+      "1" % "we"
+      "2" % "you"
+      "3" % "they")
+    ))
+  ) "object" % (number >(
+    "singular" % (person >(
+      "1" % "me"
+      "2" % "you"
+      "3" % ("her","him"))
+    ) "plural" % (person >(
+      "1" % "us"
+      "2" % "you"
+      "3" % "them")
+    ))
+  )
+);
+qualifiedNoun:
+    artify[((adv " ")? adj " ")? noun];
+art: number >(
+  "singular" % ("a","the")
+  "plural" % "the"
+);
+artify[p]: an[art " " p];
+qualified_verb_intrans_past:
+   verb_intrans_past 4 |
+   adv " " verb_intrans_past |
+   verb_intrans_past " " advp;
+advp:
+   "like " (sense="object") np |
+   "so that " s;
+   
+

@@ -1,0 +1,25 @@
+#include "eng.rm"
+#include "chars.rm"
+#include "spew_xml.rm"
+
+import doc from spew_xml;
+import noun_singular from eng;
+
+top: (directory=name)
+ "mkdir " directory "\n"
+ "cd " directory "\n"
+   fs
+ "cd ..\n"
+ "zip -r " directory ".zip " directory "\n"
+ "rm -rf " directory "\n"
+ "unzip -l " directory ".zip\n"
+ "ls -lh " directory ".zip\n"
+;
+fs: (directory=".") nodes;
+nodes: node{0,4} 2 | node{5,9};
+node:
+  "cat > " file "<<EOF\n" doc "EOF\n" 3 |
+  dir;
+file: directory "/" name ".xml";
+dir: "mkdir -p " (directory=(directory "/" name)) directory "/\n" nodes;
+name: noun_singular > /[^A-Za-z]/_/;

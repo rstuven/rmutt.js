@@ -1,0 +1,56 @@
+#include "chars.rm"
+#include "eng.rm"
+
+package url;
+
+import digit,lc from chars;
+import noun_singular from eng;
+
+top: (url "\n"){20};
+
+url:
+ "http://" hostport path;
+url_wparams:
+ "http://" hostport path ("?" params)?;
+
+hostport:
+ (dns | ip) (":" port)?;
+
+dns:
+ (name "."){1,3} tld;
+
+tld:
+ "com"|"edu"|"org"|"net";
+
+port:
+ nonzero_digit
+ digit{0,4};
+
+fragment:
+ name;
+
+ip:
+ (ottff "."){3} ottff;
+
+ottff:
+ nonzero_digit |
+ nonzero_digit digit |
+ "1" digit{2} |
+ "2" ("0"|"1"|"2"|"3"|"4") digit |
+ "25" ("0"|"1"|"2"|"3"|"4"|"5");
+
+nonzero_digit:
+ "1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9";
+
+path: directory "/" label "." lc{3};
+directory:
+ "/" label directory?;
+label: noun_singular > /[^A-Za-z]/_/;
+name: label > /_//;
+
+params:
+ param |
+ param "&" params;
+
+param:
+ lc "=" (label | digit{1,5});

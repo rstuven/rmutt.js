@@ -6,9 +6,9 @@ path = require 'path'
 ###
 # parse
 ###
-module.exports = (source) ->
+module.exports = (source, config) ->
   [rules, includes] = parse source
-  doIncludes rules, includes
+  doIncludes rules, includes, config?.workingDirectory
   rules
 
 grammar = fs.readFileSync __dirname + '/rmutt.pegjs', 'utf8'
