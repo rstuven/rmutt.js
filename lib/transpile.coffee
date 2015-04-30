@@ -14,14 +14,14 @@ module.exports = (rules) ->
   result.push '$config = $config || {};\n'
 
   # runtime
-  _.each runtime, (util, name) ->
-    result.push 'var $', name , ' = ', util.toString(), ';\n'
+  _.each runtime, (fn, name) ->
+    result.push 'var $', name , ' = ', fn.toString(), ';\n'
 
   # global scope
-  result.push 'var $ = {};\n'
+  result.push 'var $global = {};\n'
   _.each rules, (rule, name) ->
     push.apply result, concat [
-      '$["'
+      '$global["'
       name
       '"] = '
       ruleDef rule
@@ -31,7 +31,7 @@ module.exports = (rules) ->
   # kick off
   # TODO: entry point configuration
   topRule = _.first _.keys rules
-  result.push 'return $["', topRule, '"]();\n'
+  result.push 'return $global["', topRule, '"]();\n'
 
   # console.log result.join ''
   result.join ''

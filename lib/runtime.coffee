@@ -10,7 +10,7 @@ module.exports =
   ###
   assign: (scope, s, name, value) ->
     if scope is 'g'
-      $[name] = value
+      $global[name] = value
     else
       s[name] = value
       if scope is '^'
@@ -79,7 +79,7 @@ module.exports =
     return value if found
 
     # global
-    [found, value] = get $
+    [found, value] = get $global
     return value if found
 
     # custom function as parameterized rule
