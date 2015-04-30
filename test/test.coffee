@@ -1,5 +1,5 @@
 require 'coffee-script'
-rmutt = require '../lib/rmutt2'
+rmutt = require '..'
 expect = require('chai').expect
 
 expectc = (source, expected) ->
