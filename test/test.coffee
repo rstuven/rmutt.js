@@ -1,4 +1,3 @@
-require 'coffee-script'
 rmutt = require '..'
 expect = require('chai').expect
 
@@ -339,3 +338,45 @@ describe 'rmutt', ->
     compiled = rmutt.compile source
     expect(compiled oracle: 1).to.equal 'snooby fnord'
     expect(compiled oracle: 0).to.equal 'snooby quux'
+
+  describe 'custom functions', ->
+
+    it 'handles missing transformation', ->
+      source = """
+      top: expr " = " (expr > calc);
+      expr: "1 + 2";
+      """
+      expect(-> rmutt.generate source).to.throw /'calc' is not a function/
+
+    it 'uses as tramsformation', ->
+      source = """
+      top: expr " = " (expr > calc);
+      expr: "1 + 2";
+      """
+      config =
+        functions:
+          calc: (input) ->
+            (eval input).toString()
+
+      expect(rmutt.generate source, config).to.equal '1 + 2 = 3'
+
+    it 'handles missing rule or function', ->
+      source = """
+      top: expr " = " calc[expr];
+      expr: "1 + 2";
+      """
+      expect(-> rmutt.generate source).to.throw /Missing parameterized rule or custom function/
+
+    it 'uses as parameterized rule', ->
+      source = """
+      top: expr " = " calc[expr, "USD"];
+      expr: "1 + 2";
+      """
+      config =
+        functions:
+          calc: (input, unit) ->
+            unit + ' ' + (eval input).toString()
+
+      expect(rmutt.generate source, config).to.equal '1 + 2 = USD 3'
+
+    # TODO: #include functions.js

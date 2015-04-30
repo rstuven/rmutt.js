@@ -25,7 +25,6 @@ module.exports = (rules) ->
       ';\n'
     ]
 
-
   # kick off
   topRule = _.first _.keys rules
   result.push 'return $["', topRule, '"]();\n'
@@ -36,7 +35,7 @@ module.exports = (rules) ->
 # TODO: Study extensibility model (user function)
 composable = ['Mapping']
 
-translations =
+types =
 
   # DEVNOTE: Ir alphabetical order
 
@@ -113,8 +112,9 @@ translations =
       rule = makeTreeLeftRecursive rule, 'Transformation', 'expr', 'func'
 
     concat [
+      '$func('
       evalRule rule.func
-      '('
+      ')('
       evalRule rule.expr
       ')'
     ]
@@ -175,12 +175,11 @@ concat = (values) ->
   , []
 
 evalRule = (rule) ->
-  throw new Error 'Unkown rule type: ' + rule.type unless translations[rule.type]?
-  translations[rule.type] rule
+  throw new Error 'No transpilation defined for rule type: ' + rule.type unless types[rule.type]?
+  types[rule.type] rule
 
 evalRules = (rules) ->
   pushJoin ', ', rules.map (rule) -> evalRule rule
-
 
 pushJoin = (join, array) ->
   ret = []

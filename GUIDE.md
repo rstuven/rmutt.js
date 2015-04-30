@@ -75,7 +75,7 @@ brag: "I have a " (("cool" , "fast") " car", ("great", "winning") " personality"
 
 ## Repetition
 
-rmutt allows you to control how many times to repeat each part of a rule by specifying a minimum and maximum number of allowable repetitions. This is done with the "repetition qualifier" in the form {min,max} to specify a minumum and maximum number of repetitions or simply {num} to specify an exact number of repetitions. For example, the following rule:
+rmutt allows you to control how many times to repeat each part of a rule by specifying a minimum and maximum number of allowable repetitions. This is done with the "repetition qualifier" in the form `{min,max}` to specify a minumum and maximum number of repetitions or simply `{num}` to specify an exact number of repetitions. For example, the following rule:
 
 ``` coffeescript
 howfar: "very, "{3,4} "far away";
@@ -111,7 +111,7 @@ which saves us having to include the comma in each choice for `emph`, since we'v
 
 ## Shorthand repetition qualifiers
 
-There are three shorthand repeition qualifiers that you can use in place of the curly-brace notation. They are as follows:
+There are three shorthand repetition qualifiers that you can use in place of the braces notation. They are as follows:
 
 ```
 ?	{0,1}
@@ -378,28 +378,38 @@ Note: rmutt does not require that the names of grammar files end with `.rm` or a
 
 ## Command-line options
 
--s [stack depth]: Specify the maximum depth to which rmutt will expand the grammar. This is usually used to prevent recursive grammars from crashing rmutt with stack overflows. Beyond the maximum stack depth, a rule will expand to an empty, zero-length string.
--r [random seed]: Specify a seed for the random number generator. Two runs against the same grammar with the same seed will generate identical output. If no seed is specified, a seed is generated using the current system clock.
--i [iteration]: A given rmutt grammar can generate n possible strings, where n is finite or infnite depending on whether or not the grammar is recursive. Specifying an iteration will generate the nth possible string. If the iteration specified (call it i) is greater than n, rmutt will generate the (i mod n)th iteration. Enumerating all possible strings of a grammar is usually only useful for very simple grammars; most grammars can produce more strings than can be enumerated with a C int.
--e [label]: To produce a string, rmutt must start with one of the rules in the grammar. Use this option to specify which one. By default, rmutt expands the first rule it finds in the grammar.
--d: Use dynamic variable scope. Deprecated; use the `$` qualifier instead.
--v: Print version and other information and exit.
-Other Important Things
+* -s [stack depth]: Specify the maximum depth to which rmutt will expand the grammar. This is usually used to prevent recursive grammars from crashing rmutt with stack overflows. Beyond the maximum stack depth, a rule will expand to an empty, zero-length string.
 
-¶ by default, rmutt invokes the first rule in its input. Think of this as the "entry point" for your grammar.
+* -r [random seed]: Specify a seed for the random number generator. Two runs against the same grammar with the same seed will generate identical output. If no seed is specified, a seed is generated using the current system clock.
 
-¶ All top-level rules and package statements must end in a semicolon (`;`).
+* -i [iteration]: A given rmutt grammar can generate n possible strings, where n is finite or infnite depending on whether or not the grammar is recursive. Specifying an iteration will generate the nth possible string. If the iteration specified (call it i) is greater than n, rmutt will generate the (i mod n)th iteration. Enumerating all possible strings of a grammar is usually only useful for very simple grammars; most grammars can produce more strings than can be enumerated with a C int.
 
-¶ Line breaks are not significant; you may use them whenever is convenient.
+* --entry -e [label]: To produce a string, rmutt must start with one of the rules in the grammar. Use this option to specify which one. By default, rmutt expands the first rule it finds in the grammar.
 
-¶ rmutt cannot detect certain kinds of errors; in particular, if your grammar is endlessly recursive, like so:
+* -v: Print version and other information and exit.
+
+## Other Important Things
+
+### Entry point
+
+By default, rmutt invokes the first rule in its input. Think of this as the "entry point" for your grammar.
+
+### Line breaks
+
+* All top-level rules and package statements must end in a semicolon (`;`).
+
+* Line breaks are not significant; you may use them whenever is convenient.
+
+### Circular references
+
+rmutt cannot detect certain kinds of errors; in particular, if your grammar is endlessly recursive, like so:
 
 ``` coffeescript
 deadly: embrace;
 embrace: deadly;
 ```
 
-rmutt will run out of memory and silently fail as it tries to make an infinitely-long string. To mitigate this you can use the -s command line option, which sets a limit on the recursion depth. Past the limit, rules will simply fail to expand. For instance if the file `foo.rm` contained the following grammar:
+rmutt will run out of memory and silently fail as it tries to make an infinitely-long string. To mitigate this you can use the `-s` command line option, which sets a limit on the recursion depth. Past the limit, rules will simply fail to expand. For instance if the file `foo.rm` contained the following grammar:
 
 ```coffeescript
 foo: "yes" bar;
@@ -418,7 +428,9 @@ you'd get this output:
 yesyesyesyesyesyesyesyesyesyes
 ```
 
-¶ Repetition can be combined with transformations, but the repetition qualifier must come last, like this:
+### Transformations with repetition
+
+Repetition can be combined with transformations, but the repetition qualifier must come last, like this:
 
 ```coffeescript
 aRule: "clam" > /m/mp/ {2,10};
@@ -436,9 +448,14 @@ if you want the repetition to be applied before the transformation, you need to 
 aRule: ("clam"{2,10}) > /mc/m, c/ "!";
 ```
 
-¶ Comments can be included in rmutt grammars. If two slashes in a row (`//`) occur anywhere on a line, the rest of the line is treated as a comment and ignored.
+### Comments
 
-¶ To include special characters in literals, use the following notations:
+Comments can be included in rmutt grammars. If two slashes in a row (`//`) occur anywhere on a line, the rest of the line is treated as a comment and ignored.
+
+
+### Special characters
+
+To include special characters in literals, use the following notations:
 
 ```
 Double quotes	\"
@@ -447,6 +464,8 @@ Tab	\t
 Backslash	\\
 Curiosities
 ```
+
+### Turing-complete
 
 rmutt is Turing-complete. Here is an implementation of a Turing machine in rmutt 2.3.
 

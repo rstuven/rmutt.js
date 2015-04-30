@@ -85,14 +85,33 @@ module.exports =
       else
         return ref
 
+    # custom function as parameterized rule
+    if $config.functions?[name]? and args?
+      return $config.functions[name].apply null, (args)
+
+    if args?
+      throw new Error "Missing parameterized rule or custom function '#{name}'"
+
     return name
+
+  ###
+  # $func
+  ###
+  func: (fn) ->
+    return fn if typeof fn is 'function'
+
+    # custom function as transformation, probably
+    if typeof fn is 'string' and $config?.functions?[fn]?
+      return $config.functions[fn]
+
+    throw new Error "Processing grammar: expression '#{fn.toString()}' is not a function"
 
   ###
   # $mapping
   ###
   mapping: (search, replace) ->
-    (text) ->
-      text.replace new RegExp(search, 'g'), replace
+    (input) ->
+      input.replace new RegExp(search, 'g'), replace
 
   ###
   # $repeat
