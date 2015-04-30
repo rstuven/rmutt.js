@@ -34,7 +34,7 @@ module.exports = (rules) ->
   result.join ''
 
 # TODO: Study extensibility model (user function)
-composable = ['Mapping', 'RxSub']
+composable = ['Mapping']
 
 translations =
 
@@ -105,16 +105,6 @@ translations =
       ','
       evalRule rule.replace
       ')'
-    ]
-
-  # TODO: Generalize grammar to use Mapping type only
-  RxSub: (rule) ->
-    concat [
-      '$mapping("'
-      rule.search
-      '","'
-      rule.replace
-      '")'
     ]
 
   Transformation: (rule) ->
