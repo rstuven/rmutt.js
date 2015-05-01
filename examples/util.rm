@@ -29,9 +29,8 @@ an[text]: text > xan;
 
 // create a list like "a, b, and c" from a sequence like this:
 // "foo, bar, baz, " [note the trailing space]
-list: 
+list:
   /, ([^,]+), ([^,]+), $/, \1, and \2/
   /, ([^,]+), $/ and \1/
   /([^,]+), $/\1/;
 flist[text]: text > list;
-

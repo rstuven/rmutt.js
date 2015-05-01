@@ -55,9 +55,10 @@ parse = (source, rules, dir) ->
       when 'Package'
         pkg = node.name
       when 'Import'
-        name = pack node.rule, pkg
-        rule = rules[pack node.rule, node.package]
-        setRule rules, name, rule, pkg
+        node.rules.forEach (rule) ->
+          name = pack rule, pkg
+          imported = rules[pack rule, node.package]
+          setRule rules, name, imported, pkg
       when 'Rule'
         name = pack node.name, pkg
         top = name unless top?

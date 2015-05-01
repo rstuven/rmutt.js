@@ -11,7 +11,7 @@ module.exports =
     config ?= {}
 
     if typeof source is 'string'
-      compiled = compile source
+      compiled = compile source, config
     else if typeof source is 'function'
       compiled = source
 

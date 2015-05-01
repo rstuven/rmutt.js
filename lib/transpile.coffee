@@ -30,7 +30,8 @@ module.exports = (rules) ->
   # kick off
   # TODO: entry point configuration
   topRule = rules.$top
-  result.push "return $global['#{topRule}']();\n"
+  if topRule?
+    result.push "return $global['#{topRule}']();\n"
 
   # console.log result.join ''
   result.join ''

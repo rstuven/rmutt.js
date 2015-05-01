@@ -15,9 +15,9 @@ describe 'rmutt', ->
 
   examplesDir = __dirname + '/../examples/'
 
-  it.only  'example', ->
+  it.skip 'example', ->
 
-    file = 'bands.rm'
+    file = 'dialogue.rm'
 
     fs = require 'fs'
     source = fs.readFileSync examplesDir + file, 'utf8'
@@ -28,6 +28,14 @@ describe 'rmutt', ->
 
     console.log()
     console.log compiled()
+
+  it 'multiple import', ->
+    source = """
+      #include "util.rm"
+      import uc, tc from util;
+      top: tc["aaa"] " " uc["aaa"];
+    """
+    expect(rmutt.generate source, oracle: 1, workingDirectory: examplesDir).to.equal 'Aaa AAA'
 
   it 'empty choice', ->
     source = """
