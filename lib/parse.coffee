@@ -14,7 +14,7 @@ parser = peg.buildParser grammar
 module.exports = (source, config) ->
   rules = {}
   parse source, rules, config?.workingDirectory
-  # console.dir rules, depth:10
+  # console.dir rules, depth: 10
   rules
 
 include = (file, rules, dir) ->

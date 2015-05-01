@@ -15,7 +15,7 @@ describe 'rmutt', ->
 
   examplesDir = __dirname + '/../examples/'
 
-  it.skip 'example', ->
+  it.only 'example', ->
 
     file = 'dialogue.rm'
 
@@ -28,6 +28,16 @@ describe 'rmutt', ->
 
     console.log()
     console.log compiled()
+
+
+  it 'repetition in package', ->
+    source = """
+      package p;
+      top: r{1};
+      r: "R";
+    """
+    # console.log (rmutt.compile source).toString()
+    expect(rmutt.generate source, oracle: 0).to.equal 'R'
 
   it 'multiple import', ->
     source = """

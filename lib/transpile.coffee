@@ -74,7 +74,7 @@ types =
     concat [
       '$repeat('
       'function(){ return '
-      evalRule rule.repeatable
+      evalRule rule.expr
       '}'
       ', '
       JSON.stringify rule.range
