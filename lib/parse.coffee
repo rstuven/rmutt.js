@@ -3,66 +3,68 @@ fs = require 'fs'
 peg = require 'pegjs'
 path = require 'path'
 
-###
-# parse
-###
-module.exports = (source, config) ->
-  [rules, includes] = parse source
-  doIncludes rules, includes, config?.workingDirectory
-  rules
+PACKAGE_SEPARATOR = '.'
 
 grammar = fs.readFileSync __dirname + '/rmutt.pegjs', 'utf8'
 parser = peg.buildParser grammar
 
-PACKAGE_SEPARATOR = '.'
-
-parse = (source) ->
-  ast = parser.parse source
-
+###
+# parse
+###
+module.exports = (source, config) ->
   rules = {}
-  includes = []
-  @package = null
+  parse source, rules, config?.workingDirectory
+  # console.dir rules, depth:10
+  rules
 
-  setRule = (name, rule) ->
-    rules[pack name] = rule
-    packDeep rule
+include = (file, rules, dir) ->
+  fullpath = path.join (dir ? process.cwd()), file
+  source = fs.readFileSync fullpath, 'utf8'
+  parse source, rules, path.dirname fullpath
 
-  pack = (name, pkg) =>
-    pkg ?= @package
-    if pkg? and name.indexOf(PACKAGE_SEPARATOR) is -1
-      return pkg + PACKAGE_SEPARATOR + name
-    name
+pack = (name, pkg) ->
+  if pkg? and name.indexOf(PACKAGE_SEPARATOR) is -1
+    return pkg + PACKAGE_SEPARATOR + name
+  name
 
-  packDeep = (node) =>
-    return unless @package?
-    if node.type in ['RuleCall', 'Assignment']
-      node.name = pack node.name
-    else if node.items?
-      for item in node.items
-        packDeep item
-    else if node.expr?
-      packDeep node.expr
+packDeep = (node, pkg) ->
+  return unless pkg?
 
-  _.each ast, (node) =>
+  if node.type in ['RuleCall', 'Assignment']
+    node.name = pack node.name, pkg
+
+  if node.items?
+    for item in node.items
+      packDeep item, pkg
+
+  if node.type is 'Rule' and node.args?
+    node.args.forEach (arg, i) ->
+      node.args[i] = pack arg, pkg
+
+  packDeep node.expr, pkg if node.expr?
+  packDeep node.func, pkg if node.func?
+
+parse = (source, rules, dir) ->
+  pkg = undefined
+  top = undefined
+  ast = parser.parse source
+  _.each ast, (node) ->
     switch node.type
       when 'Include'
-        includes.push node.path
+        include node.path, rules, dir
       when 'Package'
-        @package = node.name
+        pkg = node.name
       when 'Import'
-        setRule node.rule, rules[pack node.rule, node.package]
+        name = pack node.rule, pkg
+        rule = rules[pack node.rule, node.package]
+        setRule rules, name, rule, pkg
       when 'Rule'
-        setRule node.name, node
+        name = pack node.name, pkg
+        top = name unless top?
+        setRule rules, name, node, pkg
 
-  [rules, includes]
+  rules.$top = top
 
-doIncludes = (rules, includes, dir) ->
-  _.each includes, (include) ->
-    if dir
-      fullpath = path.join dir, include
-    else
-      fullpath = path.join process.cwd(), include
-    source = fs.readFileSync fullpath, 'utf8'
-    [rules2, includes2] = parse source
-    _.assign rules, rules2
-    doIncludes rules, includes2, path.dirname(fullpath)
+setRule = (rules, name, rule, pkg) ->
+  rules[name] = rule
+  packDeep rule, pkg

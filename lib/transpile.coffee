@@ -20,18 +20,17 @@ module.exports = (rules) ->
   # global scope
   result.push 'var $global = {};\n'
   _.each rules, (rule, name) ->
+    return if name is '$top'
     push.apply result, concat [
-      '$global["'
-      name
-      '"] = '
+      "$global['#{name}'] = "
       ruleDef rule
       ';\n'
     ]
 
   # kick off
   # TODO: entry point configuration
-  topRule = _.first _.keys rules
-  result.push 'return $global["', topRule, '"]();\n'
+  topRule = rules.$top
+  result.push "return $global['#{topRule}']();\n"
 
   # console.log result.join ''
   result.join ''
@@ -41,16 +40,20 @@ composable = ['Mapping']
 
 types =
 
-  # DEVNOTE: Ir alphabetical order
+  # DEVNOTE: In alphabetical order
 
   Assignment: (rule) ->
     assignment rule, evalRule rule.expr
 
   Choice: (rule) ->
 
+    # Simplify single element Terms
+    if rule.items.length is 1
+      return evalRule rule.items[0]
+
     lazyRules = pushJoin ', ', rule.items.map (rule) ->
       evalued = evalRule rule
-      if evalued.__terminal__
+      if typeof evalued is 'string'
         evalued
       else
         concat [
@@ -80,9 +83,7 @@ types =
   RuleCall: (rule) ->
     args = (v) -> v() if rule.args?
     concat [
-      '$eval(s, "'
-      rule.name
-      '"'
+      "$eval(s, '#{rule.name}'"
       args -> ', ['
       args -> evalRules rule.args
       args -> ']'
@@ -90,13 +91,7 @@ types =
     ]
 
   String: (rule) ->
-    res = [
-      '"'
-      jsStringEscape rule.value
-      '"'
-    ]
-    res.__terminal__ = true
-    res
+    "'#{jsStringEscape rule.value}'"
 
   Terms: (rule) ->
 
@@ -179,15 +174,9 @@ assignment = (rule, evalued) ->
     when 'local' then 'l'
     when 'parent' then '^'
     else 'g'
-    # when 'non_local' then '^'
-    # else 'g'
 
   concat [
-    '$assign("'
-    scope
-    '", s, "'
-    rule.name
-    '", '
+    "$assign('#{scope}', s, '#{rule.name}', "
     evalued
     ')'
   ]
@@ -208,8 +197,12 @@ evalRules = (rules) ->
 pushJoin = (join, array) ->
   ret = []
   array.forEach (item, index) ->
+    return unless item?
     ret.push join if index > 0
-    push.apply ret, item
+    if item instanceof Array
+      push.apply ret, item
+    else
+      ret.push item
   ret
 
 ruleDef = (rule) ->

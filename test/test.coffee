@@ -13,25 +13,55 @@ expectc = (source, expected) ->
 
 describe 'rmutt', ->
 
-  it.only 'examples', ->
+  it.skip  'examples', ->
     fs = require 'fs'
-
-    file = 'eng.rm'
+    #
+    # file = 'eng.rm'
     # file = 'util.rm'
+    file = 'author.rm'
 
     source = fs.readFileSync __dirname + '/../examples/' + file, 'utf8'
     # source = source.replace(/^\uFEFF/, '');
     # source = source.replace(/\n\r/g, '\n');
 
-    console.log source
+    # source = """
+    # #include "examples/author.rm"
+    #
+    # top:
+    # """
+    # console.log source
 
-    try
-      compiled = rmutt.compile source, workingDirectory: __dirname + '/../examples/'
-    catch err
-      throw new Error err.message
-
+    compiled = rmutt.compile source, workingDirectory: __dirname + '/../examples/'
+    # try
+    # catch err
+    #   throw new Error err.message
+    #
     console.log compiled.toString()
+    console.log()
+    console.log compiled()
 
+  it.skip 'xxx', ->
+    source = """
+      top: a{2};
+      a: "x", "y";
+    """
+    expect(rmutt.generate source, oracle: 1).to.equal 'yx'
+
+  it 'terms parameter', ->
+    source = """
+      top: a[b c];
+      a[x]: x;
+    """
+    expect(rmutt.generate source).to.equal 'bc'
+
+  it 'paramater has local precedence in package', ->
+    source = """
+    package wtf;
+    top: a['x'];
+    a[p]: p;
+    p: 'y';
+    """
+    expect(rmutt.generate source).to.equal 'x'
 
   it 't10 - transformation chaining', ->
     source = """
@@ -105,7 +135,7 @@ describe 'rmutt', ->
     expect(compiled oracle: 1).to.equal '1'
     expect(compiled oracle: 2).to.equal '2'
 
-  # TODO: Circu;ar reference?
+  # TODO: Circular reference?
   # TODO: Check original rmutt test
   it 't2 - recursion', ->
     source = """
