@@ -13,34 +13,23 @@ expectc = (source, expected) ->
 
 describe 'rmutt', ->
 
-  it.skip  'examples', ->
-    fs = require 'fs'
-    #
-    # file = 'eng.rm'
-    # file = 'util.rm'
+  examplesDir = __dirname + '/../examples/'
+
+  it.only  'author.rm', ->
+
     file = 'author.rm'
 
-    source = fs.readFileSync __dirname + '/../examples/' + file, 'utf8'
-    # source = source.replace(/^\uFEFF/, '');
-    # source = source.replace(/\n\r/g, '\n');
-
-    # source = """
-    # #include "examples/author.rm"
-    #
-    # top:
-    # """
+    fs = require 'fs'
+    source = fs.readFileSync examplesDir + file, 'utf8'
     # console.log source
 
-    compiled = rmutt.compile source, workingDirectory: __dirname + '/../examples/'
-    # try
-    # catch err
-    #   throw new Error err.message
-    #
-    console.log compiled.toString()
+    compiled = rmutt.compile source, workingDirectory: examplesDir
+    # console.log compiled.toString()
+
     console.log()
     console.log compiled()
 
-  it.skip 'xxx', ->
+  it 'repeat with variety', ->
     source = """
       top: a{2};
       a: "x", "y";

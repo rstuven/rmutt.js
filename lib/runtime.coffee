@@ -116,7 +116,7 @@ module.exports =
   ###
   repeat: (value, range) ->
     max = range.min + $choose (range.max - range.min + 1)
-    Array(max + 1).join value
+    (value() for [1 .. max] by 1).join ''
 
   ###
   # $rule

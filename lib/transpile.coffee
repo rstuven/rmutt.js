@@ -71,7 +71,9 @@ types =
   Repetition: (rule) ->
     concat [
       '$repeat('
+      'function(){ return '
       evalRule rule.repeatable
+      '}'
       ', '
       JSON.stringify rule.range
       ')'
