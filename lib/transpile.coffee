@@ -52,6 +52,7 @@ types =
       return evalRule rule.items[0]
 
     lazyRules = pushJoin ', ', rule.items.map (rule) ->
+      return "''" if not rule?
       evalued = evalRule rule
       if typeof evalued is 'string'
         evalued

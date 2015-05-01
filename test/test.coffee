@@ -15,9 +15,9 @@ describe 'rmutt', ->
 
   examplesDir = __dirname + '/../examples/'
 
-  it.only  'author.rm', ->
+  it.only  'example', ->
 
-    file = 'author.rm'
+    file = 'bands.rm'
 
     fs = require 'fs'
     source = fs.readFileSync examplesDir + file, 'utf8'
@@ -28,6 +28,17 @@ describe 'rmutt', ->
 
     console.log()
     console.log compiled()
+
+  it 'empty choice', ->
+    source = """
+      soldOut: | |  |    "<b>SOLD OUT</b>" | |  |;
+    """
+    compiled = rmutt.compile source
+    expect(compiled oracle: 0).to.equal ''
+    expect(compiled oracle: 1).to.equal ''
+    expect(compiled oracle: 2).to.equal ''
+    expect(compiled oracle: 3).to.equal '<b>SOLD OUT</b>'
+    expect(compiled oracle: 4).to.equal ''
 
   it 'repeat with variety', ->
     source = """
