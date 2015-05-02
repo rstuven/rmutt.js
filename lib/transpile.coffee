@@ -212,7 +212,7 @@ pushJoin = (join, array) ->
 ruleDef = (rule) ->
   concat [
     '$rule(function rule_'
-    rule.name.replace /[.-]/, '_'
+    rule.name.replace /[.-]/g, '_'
     '(s) { \n'
     'return '
     evalRule rule.expr

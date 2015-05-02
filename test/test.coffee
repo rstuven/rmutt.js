@@ -17,17 +17,27 @@ describe 'rmutt', ->
 
   it.only 'example', ->
 
-    file = 'dialogue.rm'
+    file = 'numbers.rm'
 
     fs = require 'fs'
     source = fs.readFileSync examplesDir + file, 'utf8'
     # console.log source
 
+    console.time('compile')
     compiled = rmutt.compile source, workingDirectory: examplesDir
+    console.timeEnd('compile')
     # console.log compiled.toString()
 
+    console.time('generate')
+    output = compiled()
+    console.timeEnd('generate')
+
     console.log()
-    console.log compiled()
+    console.log output
+
+  it 'more than one dash in rule identifier', ->
+    source = 'a-b-c:"x";'
+    expect(rmutt.generate source).to.equal 'x'
 
 
   it 'repetition in package', ->
