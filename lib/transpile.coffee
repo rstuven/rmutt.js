@@ -18,13 +18,13 @@ module.exports = (rules) ->
     result.push 'var $', name , ' = ', fn.toString(), ';\n'
 
   # global scope
-  result.push 'var $global = {};\n'
+  result.push 'var $global = {};\n\n'
   _.each rules, (rule, name) ->
     return if name is '$top'
     push.apply result, concat [
       "$global['#{name}'] = "
       ruleDef rule
-      ';\n'
+      ';\n\n'
     ]
 
   # kick off
@@ -192,6 +192,7 @@ concat = (values) ->
   , []
 
 evalRule = (rule) ->
+  rule = type: 'String', value: rule if typeof rule is 'string'
   throw new Error 'No transpilation defined for rule type: ' + rule.type unless types[rule.type]?
   types[rule.type] rule
 

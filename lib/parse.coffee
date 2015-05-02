@@ -6,7 +6,7 @@ path = require 'path'
 PACKAGE_SEPARATOR = '.'
 
 grammar = fs.readFileSync __dirname + '/rmutt.pegjs', 'utf8'
-parser = peg.buildParser grammar
+parser = peg.buildParser grammar # TODO: cache
 
 ###
 # parse
@@ -14,7 +14,7 @@ parser = peg.buildParser grammar
 module.exports = (source, config) ->
   rules = {}
   parse source, rules, config?.workingDirectory
-  # console.dir rules, depth: 10
+  # console.dir rules, depth: 20, colors: true
   rules
 
 include = (file, rules, dir) ->
@@ -32,17 +32,21 @@ packDeep = (node, pkg) ->
 
   if node.type in ['RuleCall', 'Assignment']
     node.name = pack node.name, pkg
-
-  if node.items?
-    for item in node.items
-      packDeep item, pkg
+    if node.args?
+      for arg in node.args
+        packDeep arg, pkg
 
   if node.type is 'Rule' and node.args?
     node.args.forEach (arg, i) ->
       node.args[i] = pack arg, pkg
 
+  if node.items?
+    for item in node.items
+      packDeep item, pkg
+
   packDeep node.expr, pkg if node.expr?
   packDeep node.func, pkg if node.func?
+  packDeep node.replace, pkg if node.replace?
 
 parse = (source, rules, dir) ->
   pkg = undefined

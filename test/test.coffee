@@ -17,7 +17,7 @@ describe 'rmutt', ->
 
   it.only 'example', ->
 
-    file = 'numbers.rm'
+    file = 'directions.rm'
 
     fs = require 'fs'
     source = fs.readFileSync examplesDir + file, 'utf8'
@@ -35,10 +35,26 @@ describe 'rmutt', ->
     console.log()
     console.log output
 
+  it 'mapping in package', ->
+    source = """
+      package test;
+      top: "xxx" > "x" % a;
+      a: "y";
+    """
+    expect(rmutt.generate source).to.equal 'yyy'
+
+  it 'rule call from parameter', ->
+    source = """
+      package test;
+      top: a[b["c"]];
+      a[p]:p;
+      b[p]:p;
+    """
+    expect(rmutt.generate source).to.equal 'c'
+
   it 'more than one dash in rule identifier', ->
     source = 'a-b-c:"x";'
     expect(rmutt.generate source).to.equal 'x'
-
 
   it 'repetition in package', ->
     source = """
@@ -273,6 +289,12 @@ describe 'rmutt', ->
     a: "i like to eat apples and bananas" > (/[aeiou]+/oo/ /loo/x/);
     """
     expect(rmutt.generate source, oracle: 0).to.equal 'oo xkoo too oot ooppxs oond boonoonoos'
+
+  it 't9c - backreferences', ->
+    source = """
+    a: "a bad apple" > /a (.+) (.+)/i want the \\2s \\1ly/;
+    """
+    expect(rmutt.generate source, oracle: 0).to.equal 'i want the apples badly'
 
   it 't10 - transformation chaining', ->
     source = """

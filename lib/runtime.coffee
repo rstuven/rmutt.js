@@ -61,7 +61,6 @@ module.exports =
   # $eval
   ###
   eval: (local, name, args) ->
-
     get = (scope) ->
       if scope?.hasOwnProperty name
         ref = scope[name]
@@ -109,6 +108,7 @@ module.exports =
   ###
   mapping: (search, replace) ->
     (input) ->
+      replace = replace.replace /\\(\d+)/g, (m, $1) -> '$' + $1
       input.replace new RegExp(search, 'g'), replace
 
   ###
@@ -126,8 +126,10 @@ module.exports =
       s = $scope s
       if args?
         for arg, i in args
-          s['_' + (i+1)] = arg # positional argument
-          s[argnames[i]] = arg # named argument
+          # positional argument:
+          s['_' + (i+1)] = arg
+          # named argument:
+          s[argnames[i]] = arg if argnames?
       fn s
 
   ###
@@ -138,5 +140,5 @@ module.exports =
     if parent?
       for k, v of parent
         local[k] = v
-    local.$parent = parent
+    local.$parent = parent if parent?
     local

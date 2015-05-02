@@ -72,7 +72,7 @@ town-pass[thing]:
 town-wander[prev,next]:
  (prev-distance = town-distance)
  (dir = turn-direction)
- (landmark = town-landmark[prev]|3)
+ (landmark = town-landmark[prev]|"3")
  cap[town-travel[prev-distance] _ "on" _ prev ".\n"]
  cap[landmark > /./ % (town-pass[landmark] ".\n")]
  cap[town-turn[prev,next,dir]]
@@ -87,7 +87,7 @@ town-wander[prev,next]:
  cap[town-turn[next,prev,reverse-turn[dir]] ", then "
      town-travel-back[prev-distance,prev]]
  cap[landmark > /./ % town-repass[landmark]]
- ".\n"; 
+ ".\n";
 
 town-repass[landmark]:
  (l = landmark > /^a (.*)/the \1/)
@@ -162,4 +162,3 @@ int-travel:
  "to the " numbers-ordinal.two-digit " floor" |
  "Go" _ ("up"|"down") _ (numbers.nz-digit _ ("floors"|"stories"))>/one (.+)s/one \1/
  ("on the" _ int-lift)?;
-
