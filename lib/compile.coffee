@@ -16,6 +16,7 @@ module.exports = (source, config) ->
   else
     transpiled = transpile parse source, config
 
+  # console.log transpiled
   compiled = new Function 'module', transpiled
 
   module = {}
@@ -24,7 +25,7 @@ module.exports = (source, config) ->
 
 readOrCreateCache = (source, config) ->
   cached = config.cacheFile ? path.join os.tmpdir(), 'rmutt_' + hash source
-  if fs.existsSync cached
+  if config.cacheRegenerate isnt true and fs.existsSync cached
     console.log 'Loading cache: ', cached
     transpiled = fs.readFileSync cached
   else

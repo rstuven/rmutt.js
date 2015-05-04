@@ -13,7 +13,7 @@ parser = peg.buildParser grammar # TODO: cache
 ###
 module.exports = (source, config) ->
   rules = {}
-  parse source, rules, config?.workingDirectory
+  parse source, rules, config?.workingDir
   # console.dir rules, depth: 20, colors: true
   rules
 

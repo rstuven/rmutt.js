@@ -58,20 +58,17 @@ types =
   Choice: (rule) ->
 
     # Simplify single choice
-    if rule.items.length is 1
+    if rule.items.length is 1 and rule.items[0].type isnt 'Multiplier'
       return evalRule rule.items[0]
 
     lazyRules = pushJoin ', ', rule.items.map (rule) ->
       return "''" if not rule?
-      evalued = evalRule rule
-      if typeof evalued is 'string'
-        evalued
+      if rule.type is 'Multiplier'
+        multiplied = Array rule.multiplier
+        _.fill multiplied, evalRule rule.term.items?[0] ? rule.term, true
+        pushJoin ', ', multiplied
       else
-        concat [
-          'function(){ return '
-          evalued
-          '}'
-        ]
+        evalRule rule, true
 
     concat [
       '$choice('
@@ -82,9 +79,7 @@ types =
   Repetition: (rule) ->
     concat [
       '$repeat('
-      'function(){ return '
-      evalRule rule.expr
-      '}'
+      evalRule rule.expr, true
       ', '
       JSON.stringify rule.range
       ')'
@@ -93,10 +88,12 @@ types =
   Rule: (rule) ->
     assignment rule, ruleDef rule
 
-  Call: (rule) ->
+  Call: (rule, wrap) ->
     args = (v) -> v() if rule.args?
     concat [
-      "$call(s, '#{rule.name}'"
+      's.call'
+      if wrap then 'fn'
+      "('#{rule.name}'"
       args -> ', ['
       args -> evalRules rule.args
       args -> ']'
@@ -199,11 +196,19 @@ concat = (values) ->
     ret.concat value
   , []
 
-evalRule = (rule) ->
+evalRule = (rule, wrap) ->
   return types.String value: rule if typeof rule is 'string'
   unless types[rule.type]?
     throw new Error 'No transpilation defined for rule type: ' + rule.type
-  types[rule.type] rule
+  evalued = types[rule.type] rule, wrap
+  if wrap and rule.type isnt 'Call'
+    concat [
+      'function () { return '
+      evalued
+      '}'
+    ]
+  else
+    evalued
 
 evalRules = (rules) ->
   pushJoin ', ', rules.map (rule) -> evalRule rule

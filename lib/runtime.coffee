@@ -117,7 +117,7 @@ module.exports =
   ###
   repeat: (value, range) ->
     max = range.min + $choose (range.max - range.min + 1)
-    (value() for [1 .. max] by 1).join ''
+    (value?() ? value for [1 .. max] by 1).join ''
 
   ###
   # $rule
@@ -142,4 +142,8 @@ module.exports =
       for k, v of parent
         local[k] = v
     local.$parent = parent if parent?
+    local.call = (name, args) ->
+      $call local, name, args
+    local.callfn = (name, args) ->
+      -> $call local, name, args
     local

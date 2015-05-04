@@ -17,14 +17,14 @@ describe 'rmutt', ->
 
   it.only 'example', ->
 
-    file = 'eng.rm'
+    file = 'dotree.rm'
 
     fs = require 'fs'
     source = fs.readFileSync examplesDir + file, 'utf8'
     # console.log source
 
     console.time('compile')
-    compiled = rmutt.compile source, workingDirectory: examplesDir, cache: true
+    compiled = rmutt.compile source, workingDir: examplesDir, cache: true, cacheRegenerate: true
     console.timeEnd('compile')
     # console.log compiled.toString()
 
@@ -71,7 +71,7 @@ describe 'rmutt', ->
       import uc, tc from util;
       top: tc["aaa"] " " uc["aaa"];
     """
-    expect(rmutt.generate source, oracle: 1, workingDirectory: examplesDir).to.equal 'Aaa AAA'
+    expect(rmutt.generate source, oracle: 1, workingDir: examplesDir).to.equal 'Aaa AAA'
 
   it 'empty choice', ->
     source = """
@@ -355,7 +355,7 @@ describe 'rmutt', ->
     compiled = rmutt.compile source
     expect(compiled oracle: 3).to.equal '1'
     expect(compiled oracle: 2).to.equal '0'
-    expect(compiled oracle: 1).to.equal '1'
+    expect(compiled oracle: 1).to.equal '0'
     expect(compiled oracle: 0).to.equal '0'
 
   it 't13 - complex mapping syntax', ->
