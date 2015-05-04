@@ -7,8 +7,15 @@ push = Array.prototype.push
 # transpile
 ###
 module.exports = (rules) ->
+  result = transpile rules
+  # console.log result
+  result
+
+transpile = (rules) ->
   # console.dir rules, colors: true, depth:10
   result = []
+
+  result.push 'module.exports = function($config) {\n'
 
   # fallback
   result.push '$config = $config || {};\n'
@@ -33,7 +40,9 @@ module.exports = (rules) ->
   if topRule?
     result.push "return $global['#{topRule}']();\n"
 
-  # console.log result.join ''
+  # module.exports = ... {
+  result.push '};'
+
   result.join ''
 
 # TODO: Study extensibility model (user function)
@@ -48,7 +57,7 @@ types =
 
   Choice: (rule) ->
 
-    # Simplify single element Terms
+    # Simplify single choice
     if rule.items.length is 1
       return evalRule rule.items[0]
 
@@ -84,10 +93,10 @@ types =
   Rule: (rule) ->
     assignment rule, ruleDef rule
 
-  RuleCall: (rule) ->
+  Call: (rule) ->
     args = (v) -> v() if rule.args?
     concat [
-      "$eval(s, '#{rule.name}'"
+      "$call(s, '#{rule.name}'"
       args -> ', ['
       args -> evalRules rule.args
       args -> ']'
@@ -99,7 +108,7 @@ types =
 
   Terms: (rule) ->
 
-    # Simplify single element Terms
+    # Simplify single term
     if rule.items.length is 1
       return evalRule rule.items[0]
 
@@ -116,7 +125,7 @@ types =
 
   Multiplier: (rule) ->
     array = Array rule.multiplier
-    item = evalRule rule.term.items[0]
+    item = evalRule rule.term.items?[0] ? rule.term
     _.fill array, item
     pushJoin ', ', array
 
@@ -185,15 +194,15 @@ assignment = (rule, evalued) ->
     ')'
   ]
 
-
 concat = (values) ->
   values.reduce (ret, value) ->
     ret.concat value
   , []
 
 evalRule = (rule) ->
-  rule = type: 'String', value: rule if typeof rule is 'string'
-  throw new Error 'No transpilation defined for rule type: ' + rule.type unless types[rule.type]?
+  return types.String value: rule if typeof rule is 'string'
+  unless types[rule.type]?
+    throw new Error 'No transpilation defined for rule type: ' + rule.type
   types[rule.type] rule
 
 evalRules = (rules) ->

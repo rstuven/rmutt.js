@@ -30,7 +30,7 @@ pack = (name, pkg) ->
 packDeep = (node, pkg) ->
   return unless pkg?
 
-  if node.type in ['RuleCall', 'Assignment']
+  if node.type in ['Call', 'Assignment']
     node.name = pack node.name, pkg
     if node.args?
       for arg in node.args

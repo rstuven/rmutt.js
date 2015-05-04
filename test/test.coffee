@@ -17,14 +17,14 @@ describe 'rmutt', ->
 
   it.only 'example', ->
 
-    file = 'directions.rm'
+    file = 'eng.rm'
 
     fs = require 'fs'
     source = fs.readFileSync examplesDir + file, 'utf8'
     # console.log source
 
     console.time('compile')
-    compiled = rmutt.compile source, workingDirectory: examplesDir
+    compiled = rmutt.compile source, workingDirectory: examplesDir, cache: true
     console.timeEnd('compile')
     # console.log compiled.toString()
 
@@ -296,6 +296,12 @@ describe 'rmutt', ->
     """
     expect(rmutt.generate source, oracle: 0).to.equal 'i want the apples badly'
 
+  it 't9 - regexes with /', ->
+    source = """
+    a: "a // //// b" > /[\\/]+/-/;
+    """
+    expect(rmutt.generate source).to.equal 'a - - b'
+
   it 't10 - transformation chaining', ->
     source = """
     thing: name > deleteVowels > slangify > deleteVowels;
@@ -454,7 +460,7 @@ describe 'rmutt', ->
     expect(compiled oracle: 1).to.equal 'snooby fnord'
     expect(compiled oracle: 0).to.equal 'snooby quux'
 
-  describe 'custom functions', ->
+  describe 'external rules', ->
 
     it 'handles missing transformation', ->
       source = """
@@ -463,35 +469,35 @@ describe 'rmutt', ->
       """
       expect(-> rmutt.generate source).to.throw /'calc' is not a function/
 
-    it 'uses as tramsformation', ->
+    it 'used as tramsformation', ->
       source = """
       top: expr " = " (expr > calc);
       expr: "1 + 2";
       """
       config =
-        functions:
+        externals:
           calc: (input) ->
             (eval input).toString()
 
       expect(rmutt.generate source, config).to.equal '1 + 2 = 3'
 
-    it 'handles missing rule or function', ->
+    it 'handles missing parameterized rule', ->
       source = """
       top: expr " = " calc[expr];
       expr: "1 + 2";
       """
-      expect(-> rmutt.generate source).to.throw /Missing parameterized rule or custom function/
+      expect(-> rmutt.generate source).to.throw /Missing parameterized rule/
 
-    it 'uses as parameterized rule', ->
+    it 'used as parameterized rule', ->
       source = """
       top: expr " = " calc[expr, "USD"];
       expr: "1 + 2";
       """
       config =
-        functions:
+        externals:
           calc: (input, unit) ->
             unit + ' ' + (eval input).toString()
 
       expect(rmutt.generate source, config).to.equal '1 + 2 = USD 3'
 
-    # TODO: #include functions.js
+    # TODO: #include externals.js

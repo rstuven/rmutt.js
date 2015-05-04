@@ -8,13 +8,13 @@ module.exports =
   ###
   # $assign
   ###
-  assign: (scope, s, name, value) ->
+  assign: (scope, local, name, value) ->
     if scope is 'g'
       $global[name] = value
     else
-      s[name] = value
+      local[name] = value
       if scope is '^'
-        s.$parent[name] = value
+        local.$parent[name] = value
     return
 
   ###
@@ -58,9 +58,10 @@ module.exports =
       .reduce ((a, b) -> a + b), ''
 
   ###
-  # $eval
+  # $call
   ###
-  eval: (local, name, args) ->
+  call: (local, name, args) ->
+
     get = (scope) ->
       if scope?.hasOwnProperty name
         ref = scope[name]
@@ -82,17 +83,17 @@ module.exports =
     [found, value] = get $global
     return value if found
 
-    # custom function as parameterized rule
-    if args? and $config.functions?[name]?
-      return $config.functions[name].apply null, args
+    # external parameterized rule
+    if args? and $config.externals?[name]?
+      return $config.externals[name].apply null, args
 
     # orphan args :(
     if args?
-      throw new Error "Missing parameterized rule or custom function '#{name}'"
+      throw new Error "Missing parameterized rule '#{name}'"
 
-    # custom function as transformation, probably
-    if $config.functions?[name]?
-      return $config.functions[name]
+    # external rule (used as transformation, probably)
+    if $config.externals?[name]?
+      return $config.externals[name]
 
     return name
 
