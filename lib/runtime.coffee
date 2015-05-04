@@ -18,46 +18,6 @@ module.exports =
     return
 
   ###
-  # $choice
-  ###
-  choice: ->
-    index = $choose arguments.length
-    value = arguments[index]
-    value?() ? value # lazy rule evaluation
-
-  ###
-  # $choose
-  ###
-  choose: (terms) ->
-    if $config.oracle?
-      $config.terms = terms
-      index = $config.oracle % terms
-      $config.oracle = Math.floor $config.oracle / terms
-    else
-      index = Math.floor terms * Math.random()
-
-    index
-
-  ###
-  # $compose
-  ###
-  compose: ->
-    res = (v) -> v
-    [].slice.apply(arguments)
-      .forEach (fn) ->
-        nonClosure = res
-        res = (v) -> fn nonClosure v
-    res
-
-  ###
-  # $concat
-  ###
-  concat: ->
-    [].slice.apply(arguments)
-      .filter (x) -> typeof x is 'string'
-      .reduce ((a, b) -> a + b), ''
-
-  ###
   # $call
   ###
   call: (local, name, args) ->
@@ -98,19 +58,53 @@ module.exports =
     return name
 
   ###
-  # $func
+  # $choice
   ###
-  func: (fn) ->
-    return fn if typeof fn is 'function'
-    throw new Error "Processing grammar: expression '#{fn.toString()}' is not a function"
+  choice: ->
+    index = $choose arguments.length
+    value = arguments[index]
+    value?() ? value # lazy rule evaluation
+
+  ###
+  # $choose
+  ###
+  choose: (terms) ->
+    if $config.oracle?
+      $config.terms = terms
+      index = $config.oracle % terms
+      $config.oracle = Math.floor $config.oracle / terms
+    else
+      index = Math.floor terms * Math.random()
+
+    index
+
+  ###
+  # $compose
+  ###
+  compose: ->
+    res = (v) -> v
+    [].slice.apply(arguments)
+      .forEach (fn) ->
+        nonClosure = res
+        res = (v) -> fn nonClosure v
+    res
+
+  ###
+  # $concat
+  ###
+  concat: ->
+    [].slice.apply(arguments)
+      .filter (x) -> typeof x is 'string'
+      .reduce ((a, b) -> a + b), ''
 
   ###
   # $mapping
   ###
   mapping: (search, replace) ->
     (input) ->
-      replace = replace.replace /\\(\d+)/g, (m, $1) -> '$' + $1
-      input.replace new RegExp(search, 'g'), replace
+      input.replace new RegExp(search, 'g'), ->
+        args = arguments
+        (replace?() ? replace).replace /\\(\d+)/g, (m, n) -> args[n]
 
   ###
   # $repeat
@@ -147,3 +141,11 @@ module.exports =
     local.callfn = (name, args) ->
       -> $call local, name, args
     local
+
+  ###
+  # $transform
+  ###
+  transform: (expr, fn) ->
+    unless typeof fn is 'function'
+      throw new Error "Processing grammar: expression '#{fn?.toString()}' is not a function"
+    fn expr

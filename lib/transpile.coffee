@@ -131,7 +131,7 @@ types =
       '$mapping('
       evalRule rule.search
       ','
-      evalRule rule.replace
+      evalRule rule.replace, true
       ')'
     ]
 
@@ -141,10 +141,10 @@ types =
       rule = makeTreeLeftRecursive rule, 'Transformation', 'expr', 'func'
 
     concat [
-      '$func('
-      evalRule rule.func
-      ')('
+      '$transform('
       evalRule rule.expr
+      ','
+      evalRule rule.func
       ')'
     ]
 

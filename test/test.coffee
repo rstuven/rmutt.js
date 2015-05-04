@@ -15,9 +15,9 @@ describe 'rmutt', ->
 
   examplesDir = __dirname + '/../examples/'
 
-  it.only 'example', ->
+  it 'example', ->
 
-    file = 'dotree.rm'
+    file = 'directions.rm'
 
     fs = require 'fs'
     source = fs.readFileSync examplesDir + file, 'utf8'
@@ -363,17 +363,10 @@ describe 'rmutt', ->
     a: ("a"|"b")>("a"%("0"|"zero") "b"%("1"|"one"));
     """
     compiled = rmutt.compile source
-    expect(compiled oracle: 6).to.equal 'one'
-    expect(compiled oracle: 4).to.equal '1'
-    expect(compiled oracle: 1).to.equal 'zero'
+    expect(compiled oracle: 3).to.equal 'one'
+    expect(compiled oracle: 2).to.equal 'zero'
+    expect(compiled oracle: 1).to.equal '1'
     expect(compiled oracle: 0).to.equal '0'
-
-    # TODO: Expected order:
-    # oracle:3 one
-    # oracle:2 zero
-    # oracle:1 1
-    # oracle:0 0
-
 
   it 't14 - includes', ->
     source = """
