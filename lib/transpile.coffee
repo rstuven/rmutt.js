@@ -34,7 +34,7 @@ transpile = (rules, config) ->
   # global scope
   result.push 'var $global = {};\n\n'
   _.each rules, (rule, name) ->
-    return if name is '$top'
+    return if name is '$entry'
     push.apply result, concat [
       "$global['#{name}'] = "
       ruleDef rule
@@ -42,10 +42,11 @@ transpile = (rules, config) ->
     ]
 
   # kick off
-  # TODO: entry point configuration
-  topRule = rules.$top
-  if topRule?
-    result.push "return $global['#{topRule}']();\n"
+  entry = config.entry ? rules.$entry
+  if entry?
+    result.push "return $global[$config.entry || '#{entry}']();\n"
+  else
+    result.push "if ($config.entry != null) return $global[$config.entry]();\n"
 
   # done!
   result.push '};'

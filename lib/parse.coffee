@@ -70,7 +70,7 @@ packDeep = (node, pkg) ->
 
 parse = (source, rules, dir) ->
   pkg = undefined
-  top = undefined
+  entry = undefined
   ast = parser.parse source
   _.each ast, (node) ->
     switch node.type
@@ -83,10 +83,10 @@ parse = (source, rules, dir) ->
           importRule rules, name, node.from, pkg
       when 'Rule'
         name = pack node.name, pkg
-        top = name unless top?
+        entry = name unless entry?
         setRule rules, name, node, pkg
 
-  rules.$top = top
+  rules.$entry = entry
 
 importRule = (rules, name, from, into) ->
   nameFrom = pack name, from
