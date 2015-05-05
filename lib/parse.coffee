@@ -13,14 +13,23 @@ parser = peg.buildParser grammar # TODO: cache
 ###
 module.exports = (source, config) ->
   rules = {}
-  parse source, rules, config?.workingDir
+  try
+    parse source, rules, config?.workingDir
+  catch err
+    err.message += " (L#{err.line} C#{err.column})" if err.line? or err.column?
+    throw err
+
   # console.dir rules, depth: 20, colors: true
   rules
 
 include = (file, rules, dir) ->
   fullpath = path.join (dir ? process.cwd()), file
   source = fs.readFileSync fullpath, 'utf8'
-  parse source, rules, path.dirname fullpath
+  try
+    parse source, rules, path.dirname fullpath
+  catch err
+    err.message += " (#{err.line}:#{err.column})" if err.line? or err.column?
+    throw err
 
 pack = (name, pkg) ->
   if pkg? and name.indexOf(PACKAGE_SEPARATOR) is -1

@@ -17,7 +17,7 @@ describe 'rmutt', ->
 
   it 'example', ->
 
-    file = 'directions.rm'
+    file = 'recipe.rm'
 
     fs = require 'fs'
     source = fs.readFileSync examplesDir + file, 'utf8'
@@ -357,6 +357,14 @@ describe 'rmutt', ->
     expect(compiled oracle: 2).to.equal '0'
     expect(compiled oracle: 1).to.equal '0'
     expect(compiled oracle: 0).to.equal '0'
+
+  it 't12b - ignore no choice multiplier', ->
+    source = """
+    package test;
+    a: "x" "y" "z" 3;
+    """
+    compiled = rmutt.compile source
+    expect(compiled()).to.equal 'xyz'
 
   it 't13 - complex mapping syntax', ->
     source = """

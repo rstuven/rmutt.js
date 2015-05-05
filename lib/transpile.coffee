@@ -60,17 +60,29 @@ types =
   Assignment: (rule) ->
     assignment rule, evalRule rule.expr
 
+  Call: (rule, wrap) ->
+    args = (v) -> v() if rule.args?
+    concat [
+      's.call'
+      if wrap then 'fn'
+      "('#{rule.name}'"
+      args -> ', ['
+      args -> evalRules rule.args
+      args -> ']'
+      ')'
+    ]
+
   Choice: (rule) ->
 
     # Simplify single choice
-    if rule.items.length is 1 and rule.items[0].type isnt 'Multiplier'
+    if rule.items.length is 1 and rule.items[0].type isnt 'Multiplied'
       return evalRule rule.items[0]
 
     lazyRules = pushJoin ', ', rule.items.map (rule) ->
       return "''" if not rule?
-      if rule.type is 'Multiplier'
+      if rule.type is 'Multiplied'
         multiplied = Array rule.multiplier
-        _.fill multiplied, evalRule rule.term.items?[0] ? rule.term, true
+        _.fill multiplied, evalRule rule.expr, true
         pushJoin ', ', multiplied
       else
         evalRule rule, true
@@ -78,6 +90,19 @@ types =
     concat [
       '$choice('
       lazyRules
+      ')'
+    ]
+
+  Multiplied: (rule) ->
+    # Ignore rule.multiplier here. See it in action in Choice type.
+    evalRule rule.expr
+
+  Mapping: (rule) ->
+    concat [
+      '$mapping('
+      evalRule rule.search
+      ', '
+      evalRule rule.replace, true
       ')'
     ]
 
@@ -92,18 +117,6 @@ types =
 
   Rule: (rule) ->
     assignment rule, ruleDef rule
-
-  Call: (rule, wrap) ->
-    args = (v) -> v() if rule.args?
-    concat [
-      's.call'
-      if wrap then 'fn'
-      "('#{rule.name}'"
-      args -> ', ['
-      args -> evalRules rule.args
-      args -> ']'
-      ')'
-    ]
 
   String: (rule) ->
     "'#{jsStringEscape rule.value}'"
@@ -125,21 +138,6 @@ types =
       ')'
     ]
 
-  Multiplier: (rule) ->
-    array = Array rule.multiplier
-    item = evalRule rule.term.items?[0] ? rule.term
-    _.fill array, item
-    pushJoin ', ', array
-
-  Mapping: (rule) ->
-    concat [
-      '$mapping('
-      evalRule rule.search
-      ','
-      evalRule rule.replace, true
-      ')'
-    ]
-
   Transformation: (rule) ->
     # for transformation chaining, we need to make the tree left-recursive
     if rule.type is 'Transformation' and rule.func.type is 'Transformation'
@@ -148,7 +146,7 @@ types =
     concat [
       '$transform('
       evalRule rule.expr
-      ','
+      ', '
       evalRule rule.func
       ')'
     ]
