@@ -2,6 +2,7 @@
 
 import cap from util;
 
+toptop: tourdates;
 top: (oldBandname "\n"){10};
 and: "and the";
 _:" ";
@@ -52,8 +53,9 @@ coolbands: cool _ style _ bands | cool _ bands;
 list: "<title>" coolbands "</title><h1>" coolbands "</h1><ul>" b b b b b b b b b b b b "</ul>" tourdates;
 capBandname:cap[ bandname];
 b: "<li>" capBandname;
-tourdates: "<h1>Dates for the 1997" capBandname "Tour</h1><ul>" d d d d d d d d d d "</ul>";
-d: "<li>" place "-" month day soldOut | "<li>" place "-" month day "thru" month day soldOut;
+tourdates: "<h1>Dates for the 2015 " capBandname " Tour</h1>\n<ul>" d d d d d d d d d d "\n</ul>";
+d: "\n<li>" place ": " month _ day _ soldOut
+| "\n<li>" place ": " month _ day " thru " month _ day _ soldOut;
 soldOut: | | | | | | "<b>SOLD OUT</b>";
 month: "Jan" | "Feb" | "Mar" | "Apr" | "May" | "Jun" | "Jul" | "Aug" | "Sep" | "Oct" | "Nov" | "Dec";
 day: "1st" | "2nd" | "3rd" | "4th" | "5th" | "6th" | "7th" | "8th" | "9th" | "10th" | "11th" | "12th" | "13th" | "14th" |
