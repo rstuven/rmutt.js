@@ -12,9 +12,9 @@ module.exports =
     if scope is 'g'
       $global[name] = value
     else
-      local[name] = value
-      if scope is '^'
-        local.$parent[name] = value
+      local.vars[name] = value
+      if scope is '^' and local.parent?
+        local.parent.vars[name] = value
     return
 
   ###
@@ -22,9 +22,11 @@ module.exports =
   ###
   call: (local, name, args) ->
 
-    get = (scope) ->
-      if scope?.hasOwnProperty name
-        ref = scope[name]
+    return if local.depth > ($config.maxStackSize ? 5)
+
+    get = (vars) ->
+      if vars?.hasOwnProperty name
+        ref = vars[name]
         if typeof ref is 'function'
           return [true, ref(local, args)]
         else
@@ -32,12 +34,13 @@ module.exports =
       [false]
 
     # local
-    [found, value] = get local
+    [found, value] = get local.vars
     return value if found
 
     # parent
-    [found, value] = get local.$parent
-    return value if found
+    if local.parent?
+      [found, value] = get local.parent.vars
+      return value if found
 
     # global
     [found, value] = get $global
@@ -122,24 +125,31 @@ module.exports =
       if args?
         for arg, i in args
           # positional argument:
-          s['_' + (i+1)] = arg
+          s.vars['_' + (i+1)] = arg
           # named argument:
-          s[argnames[i]] = arg if argnames?
+          s.vars[argnames[i]] = arg if argnames?
       fn s
 
   ###
   # $scope
   ###
   scope: (parent) ->
-    local = {}
+
+    local =
+      vars: {}
+      call: (name, args) ->
+        $call local, name, args
+      callfn: (name, args) ->
+        -> $call local, name, args
+
     if parent?
-      for k, v of parent
-        local[k] = v
-    local.$parent = parent if parent?
-    local.call = (name, args) ->
-      $call local, name, args
-    local.callfn = (name, args) ->
-      -> $call local, name, args
+      for k, v of parent.vars
+        local.vars[k] = v
+      local.parent = parent
+      local.depth = parent.depth + 1
+    else
+      local.depth = 1
+
     local
 
   ###
