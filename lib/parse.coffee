@@ -16,7 +16,8 @@ module.exports = (source, config) ->
   try
     parse source, rules, config?.workingDir
   catch err
-    err.message += " (L#{err.line} C#{err.column})" if err.line? or err.column?
+    err.message += "\n    at (#{err.file}:#{err.line}:#{err.column})" if err.line? or err.column?
+    console.error err
     throw err
 
   # console.dir rules, depth: 20, colors: true
@@ -28,7 +29,7 @@ include = (file, rules, dir) ->
   try
     parse source, rules, path.dirname fullpath
   catch err
-    err.message += " (#{err.line}:#{err.column})" if err.line? or err.column?
+    err.file = fullpath
     throw err
 
 pack = (name, pkg) ->
