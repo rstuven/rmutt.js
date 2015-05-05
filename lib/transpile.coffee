@@ -96,7 +96,8 @@ types =
     ]
 
   Multiplied: (rule) ->
-    # Ignore rule.multiplier here. See it in action in Choice type.
+    # Ignore rule.multiplier (parsed at this level for backward compatibility).
+    # See it in action in Choice type.
     evalRule rule.expr
 
   Mapping: (rule) ->
