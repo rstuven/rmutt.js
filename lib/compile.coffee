@@ -6,6 +6,9 @@ hash = require 'string-hash'
 parse = require './parse'
 transpile = require './transpile'
 
+# TODO: stats
+# TODO: async
+
 ###
 # compile
 ###
@@ -24,6 +27,7 @@ module.exports = (source, config) ->
   return module.exports
 
 readOrCreateCache = (source, config) ->
+  # TODO: include in hash modifications dates of rmutt.pegjs, parse.coffee & transpile.coffee
   cached = config.cacheFile ? path.join os.tmpdir(), 'rmutt_' + hash source
   if config.cacheRegenerate isnt true and fs.existsSync cached
     console.log 'Loading cache: ', cached

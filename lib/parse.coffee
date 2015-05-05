@@ -8,6 +8,8 @@ PACKAGE_SEPARATOR = '.'
 grammar = fs.readFileSync __dirname + '/rmutt.pegjs', 'utf8'
 parser = peg.buildParser grammar # TODO: cache
 
+# TODO: async
+
 ###
 # parse
 ###
