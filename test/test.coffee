@@ -17,14 +17,18 @@ describe 'rmutt', ->
 
   it 'example', ->
 
-    file = 'recipe.rm'
+    file = 'slogan.rm'
 
     fs = require 'fs'
     source = fs.readFileSync examplesDir + file, 'utf8'
     # console.log source
 
     console.time('compile')
-    compiled = rmutt.compile source, workingDir: examplesDir, cache: true, cacheRegenerate: true
+    compiled = rmutt.compile source,
+      workingDir: examplesDir
+      header: file
+      cache: true
+      cacheRegenerate: true
     console.timeEnd('compile')
     # console.log compiled.toString()
 

@@ -14,7 +14,7 @@ module.exports = (source, config) ->
   if cache
     transpiled = readOrCreateCache source, config
   else
-    transpiled = transpile parse source, config
+    transpiled = transpile parse(source, config), config
 
   # console.log transpiled
   compiled = new Function 'module', transpiled
@@ -29,6 +29,6 @@ readOrCreateCache = (source, config) ->
     console.log 'Loading cache: ', cached
     transpiled = fs.readFileSync cached
   else
-    transpiled = transpile parse source, config
+    transpiled = transpile parse(source, config), config
     fs.writeFileSync cached, transpiled
   transpiled

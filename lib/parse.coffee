@@ -36,6 +36,14 @@ pack = (name, pkg) ->
     return pkg + PACKAGE_SEPARATOR + name
   name
 
+packReplace = (name, pkg) ->
+  parts = name.split PACKAGE_SEPARATOR
+  name = parts[parts.length - 1]
+  if pkg?
+    pkg + PACKAGE_SEPARATOR + name
+  else
+    name
+
 packDeep = (node, pkg) ->
   return unless pkg?
 
@@ -68,10 +76,8 @@ parse = (source, rules, dir) ->
       when 'Package'
         pkg = node.name
       when 'Import'
-        node.rules.forEach (rule) ->
-          name = pack rule, pkg
-          imported = rules[pack rule, node.package]
-          setRule rules, name, imported, pkg
+        node.rules.forEach (name) ->
+          importRule rules, name, node.from, pkg
       when 'Rule'
         name = pack node.name, pkg
         top = name unless top?
@@ -79,6 +85,27 @@ parse = (source, rules, dir) ->
 
   rules.$top = top
 
+importRule = (rules, name, from, into) ->
+  nameFrom = pack name, from
+  nameInto = pack name, into
+  args = rules[nameFrom].args
+  if args?
+    args = args.map (arg) ->
+      packReplace arg, into
+    argsCalls = args.map (arg) ->
+      type: 'Call'
+      name: arg
+  imported =
+    type: 'Rule'
+    name: nameInto
+    args: args
+    expr:
+      type: 'Call'
+      name: nameFrom
+      args: argsCalls
+  rules[nameInto] = imported
+
 setRule = (rules, name, rule, pkg) ->
-  rules[name] = rule
+  rule.name = name
   packDeep rule, pkg
+  rules[name] = rule
