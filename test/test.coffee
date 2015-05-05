@@ -1,7 +1,7 @@
 rmutt = require '..'
 expect = require('chai').expect
 
-expectc = (source, expected) ->
+expectWithOracle = (source, expected) ->
   compiled = rmutt.compile source
   for result, index in expected.reverse()
     expect(compiled oracle: index)
@@ -9,7 +9,6 @@ expectc = (source, expected) ->
 
 # TODO: empty grammar test
 # TODO: undefined config test
-# TODO: rename expectc
 
 describe 'rmutt', ->
 
@@ -89,7 +88,7 @@ describe 'rmutt', ->
       top: a{2};
       a: "x", "y";
     """
-    expectc source, [
+    expectWithOracle source, [
       'yy'
       'xy'
       'yx'
@@ -147,7 +146,7 @@ describe 'rmutt', ->
       lastName: "McPhee", "Eaton-Hogg", "Worthingham";
       position: "the butler", "the chauffeur";
     """
-    expectc source, [
+    expectWithOracle source, [
       "the butler said, 'I am the butler, so nice to meet you.'"
       "Dr. Nancy McPhee said, 'I am Dr. Nancy McPhee, so nice to meet you.'"
     ]
@@ -156,7 +155,7 @@ describe 'rmutt', ->
     source = """
       t: "0"|"1"|"2";
     """
-    expectc source, [
+    expectWithOracle source, [
       '2'
       '1'
       '0'
@@ -166,7 +165,7 @@ describe 'rmutt', ->
     source = """
       soldOut: | |  |    "<b>SOLD OUT</b>" | |  |;
     """
-    expectc source, [
+    expectWithOracle source, [
       ''
       '<b>SOLD OUT</b>'
       ''
@@ -179,7 +178,7 @@ describe 'rmutt', ->
       t: "0"|a;
       a: "1"|t;
     """
-    expectc source, [
+    expectWithOracle source, [
       '1'
       '0', '1', '0', '0', '0', '1', '0'
     ]
@@ -204,7 +203,7 @@ describe 'rmutt', ->
     source = """
       t: "a" ("b"|"c") "d";
     """
-    expectc source, [
+    expectWithOracle source, [
       'acd'
       'abd'
     ]
@@ -213,7 +212,7 @@ describe 'rmutt', ->
     source = """
       t: "a" ("b"|("c"|"d"));
     """
-    expectc source, [
+    expectWithOracle source, [
       'ad'
       'ab'
       'ac'
@@ -224,7 +223,7 @@ describe 'rmutt', ->
     source = """
       t: "a"{2} "b"{2,3} "c"? "d"* "e"+;
     """
-    expectc source, [
+    expectWithOracle source, [
       'aabbbcddddde'
       'aabbcddddde'
       'aabbbddddde'
@@ -264,7 +263,7 @@ describe 'rmutt', ->
     source = """
       t: (a: "0" | "1") a;
     """
-    expectc source, [
+    expectWithOracle source, [
       '1'
       '0'
     ]
@@ -273,7 +272,7 @@ describe 'rmutt', ->
     source = """
       t: (a = "0" | "1") a a;
     """
-    expectc source, [
+    expectWithOracle source, [
       '11'
       '00'
     ]
@@ -283,7 +282,7 @@ describe 'rmutt', ->
       a: b > ("0" % "a" "1" % "b");
       b: "0" | "1";
     """
-    expectc source, [
+    expectWithOracle source, [
       'b'
       'a'
     ]
@@ -292,7 +291,7 @@ describe 'rmutt', ->
     source = """
       a: "i like to eat apples and bananas" > "i" % "u";
     """
-    expectc source, [
+    expectWithOracle source, [
       'u luke to eat apples and bananas'
     ]
 
@@ -301,7 +300,7 @@ describe 'rmutt', ->
       a: "i like to eat apples and bananas" > ("i" % u);
       u: "u";
     """
-    expectc source, [
+    expectWithOracle source, [
       'u luke to eat apples and bananas'
     ]
 
@@ -318,7 +317,7 @@ describe 'rmutt', ->
     source = """
       a: "i like to eat apples and bananas" > /[aeiou]+/oo/;
     """
-    expectc source, [
+    expectWithOracle source, [
       'oo lookoo too oot oopploos oond boonoonoos'
     ]
 
@@ -326,7 +325,7 @@ describe 'rmutt', ->
     source = """
       a: "i like to eat apples and bananas" > (/[aeiou]+/oo/ /loo/x/);
     """
-    expectc source, [
+    expectWithOracle source, [
       'oo xkoo too oot ooppxs oond boonoonoos'
     ]
 
@@ -334,7 +333,7 @@ describe 'rmutt', ->
     source = """
       a: "a bad apple" > /a (.+) (.+)/i want the \\2s \\1ly/;
     """
-    expectc source, [
+    expectWithOracle source, [
       'i want the apples badly'
     ]
 
@@ -352,7 +351,7 @@ describe 'rmutt', ->
       slangify: "chck" % "chiggidy" "snp" % "snippidy";
       name: "check" | "chuck" | "snap" | "snipe";
     """
-    expectc source, [
+    expectWithOracle source, [
       'snppdy'
       'snppdy'
       'chggdy'
@@ -409,7 +408,7 @@ describe 'rmutt', ->
       s: "hello there " o;
       o: "beautiful" | "Mr. Smarty Pants";
     """
-    expectc source, [
+    expectWithOracle source, [
       "ogre starts with the letter 'O', Mr. Smarty Pants"
       "oatmeal starts with the letter 'O', Mr. Smarty Pants"
       "ogre starts with the letter 'O', beautiful"
@@ -421,7 +420,7 @@ describe 'rmutt', ->
       package test;
       a: "0" 3| "1";
     """
-    expectc source, [
+    expectWithOracle source, [
       '1'
       '0'
       '0'
@@ -440,7 +439,7 @@ describe 'rmutt', ->
     source = """
       a: ("a"|"b")>("a"%("0"|"zero") "b"%("1"|"one"));
     """
-    expectc source, [
+    expectWithOracle source, [
       'one'
       'zero'
       '1'
@@ -460,7 +459,7 @@ describe 'rmutt', ->
       r: ((a="foo") a ($b="bar")) b " "
       ((c:"foo"|"bar") c ($d:"baz"|"quux") d) d "\\n";
     """
-    expectc source, [
+    expectWithOracle source, [
       'foobar barquuxquux\n'
       'foobar fooquuxquux\n'
       'foobar barbazquux\n'
@@ -532,7 +531,7 @@ describe 'rmutt', ->
       quux: "snooby " bar;
 
     """
-    expectc source, [
+    expectWithOracle source, [
       'snooby fnord'
       'snooby quux'
     ]
