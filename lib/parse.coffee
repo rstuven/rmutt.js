@@ -50,7 +50,7 @@ packReplace = (name, pkg) ->
 packDeep = (node, pkg) ->
   return unless pkg?
 
-  if node.type in ['Call', 'Assignment']
+  if node.type in ['Invocation', 'Assignment']
     node.name = pack node.name, pkg
     if node.args?
       for arg in node.args
@@ -96,17 +96,17 @@ importRule = (rules, name, from, into) ->
   if args?
     args = args.map (arg) ->
       packReplace arg, into
-    argsCalls = args.map (arg) ->
-      type: 'Call'
+    invocationArgs = args.map (arg) ->
+      type: 'Invocation'
       name: arg
   imported =
     type: 'Rule'
     name: nameInto
     args: args
     expr:
-      type: 'Call'
+      type: 'Invocation'
       name: nameFrom
-      args: argsCalls
+      args: invocationArgs
   rules[nameInto] = imported
 
 setRule = (rules, name, rule, pkg) ->

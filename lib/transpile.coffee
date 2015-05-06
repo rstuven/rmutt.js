@@ -8,9 +8,12 @@ push = Array.prototype.push
 ###
 # transpile
 ###
-module.exports = (rules, config) ->
+module.exports = (input, config) ->
   config ?= {}
-  rules = parse rules, config if typeof rules is 'string'
+  if typeof input is 'string'
+    rules = parse input, config
+  else
+    rules = input
   result = transpile rules, config
   # console.log result
   result
@@ -39,7 +42,7 @@ transpile = (rules, config) ->
     return if name is '$entry'
     push.apply result, concat [
       "$global['#{name}'] = "
-      ruleDef rule
+      generateRuleDefinition rule
       ';\n\n'
     ]
 
@@ -63,34 +66,22 @@ types =
   # DEVNOTE: In alphabetical order
 
   Assignment: (rule) ->
-    assignment rule, evalRule rule.expr
-
-  Call: (rule, wrap) ->
-    args = (v) -> v() if rule.args?
-    concat [
-      's.call'
-      if wrap then 'fn'
-      "('#{rule.name}'"
-      args -> ', ['
-      args -> evalRules rule.args
-      args -> ']'
-      ')'
-    ]
+    generateAssignment rule, generateRule rule.expr
 
   Choice: (rule) ->
 
     # Simplify single choice
     if rule.items.length is 1 and rule.items[0].type isnt 'Multiplied'
-      return evalRule rule.items[0]
+      return generateRule rule.items[0]
 
     lazyRules = pushJoin ', ', rule.items.map (rule) ->
       return "''" if not rule?
       if rule.type is 'Multiplied'
         multiplied = Array rule.multiplier
-        _.fill multiplied, evalRule rule.expr, true
+        _.fill multiplied, generateRule rule.expr, true
         pushJoin ', ', multiplied
       else
-        evalRule rule, true
+        generateRule rule, true
 
     concat [
       '$choice('
@@ -98,37 +89,49 @@ types =
       ')'
     ]
 
+  Invocation: (rule, lazy) ->
+    args = rule.args?
+    concat [
+      's.invoke'
+      if lazy then 'Lazy'
+      "('#{rule.name}'"
+      if args then ', ['
+      if args then generateRules rule.args
+      if args then ']'
+      ')'
+    ]
+
   Multiplied: (rule) ->
     # Ignore rule.multiplier (parsed at this level for backward compatibility).
     # See it in action in Choice type.
-    evalRule rule.expr
+    generateRule rule.expr
 
   Mapping: (rule) ->
     concat [
       '$mapping('
-      evalRule rule.search
+      generateRule rule.search
       ', '
-      evalRule rule.replace, true
+      generateRule rule.replace, true
       ')'
     ]
 
   Repetition: (rule) ->
     concat [
       '$repeat('
-      evalRule rule.expr, true
+      generateRule rule.expr, true
       ', '
       JSON.stringify rule.range
       ')'
     ]
 
   Rule: (rule) ->
-    assignment rule, ruleDef rule
+    generateAssignment rule, generateRuleDefinition rule
 
   Terms: (rule) ->
 
     # Simplify single term
     if rule.items.length is 1
-      return evalRule rule.items[0]
+      return generateRule rule.items[0]
 
     fn =  if _.all(rule.items, (item) -> item.type in composable)
       '$compose'
@@ -137,7 +140,7 @@ types =
     concat [
       fn
       '('
-      evalRules rule.items
+      generateRules rule.items
       ')'
     ]
 
@@ -148,11 +151,58 @@ types =
 
     concat [
       '$transform('
-      evalRule rule.expr
+      generateRule rule.expr
       ', '
-      evalRule rule.func
+      generateRule rule.func
       ')'
     ]
+
+concat = (values) ->
+  values.reduce (ret, value) ->
+    ret.concat value
+  , []
+
+generateAssignment = (rule, generated) ->
+  scope = switch rule.scope
+    when 'local' then 'l'
+    when 'parent' then '^'
+    else 'g'
+
+  concat [
+    "s.assign('#{scope}', '#{rule.name}', "
+    generated
+    ')'
+  ]
+
+generateRule = (rule, lazy) ->
+  return stringify '' unless rule?
+  return stringify rule if typeof rule is 'string'
+  unless types[rule.type]?
+    throw new Error 'No transpilation defined for rule type: ' + rule.type
+  generated = types[rule.type] rule, lazy
+  if lazy and rule.type isnt 'Invocation'
+    concat [
+      'function () { return '
+      generated
+      '}'
+    ]
+  else
+    generated
+
+generateRuleDefinition = (rule) ->
+  concat [
+    '$rule(function rule__'
+    rule.name.replace(/-/g, '_').replace(/\./g, '__')
+    '(s) { \n'
+    'return '
+    generateRule rule.expr
+    ';\n}'
+    if rule.args? then ', ' + JSON.stringify rule.args
+    ')'
+  ]
+
+generateRules = (rules) ->
+  pushJoin ', ', rules.map (rule) -> generateRule rule
 
 ###
 Convert a right-recursive tree to a left-recursive tree.
@@ -185,41 +235,6 @@ makeTreeLeftRecursive = (node, type, left, right, fifo) ->
   else
     makeTreeLeftRecursive node[right], type, left, right, [node[left]]
 
-assignment = (rule, evalued) ->
-  scope = switch rule.scope
-    when 'local' then 'l'
-    when 'parent' then '^'
-    else 'g'
-
-  concat [
-    "s.assign('#{scope}', '#{rule.name}', "
-    evalued
-    ')'
-  ]
-
-concat = (values) ->
-  values.reduce (ret, value) ->
-    ret.concat value
-  , []
-
-evalRule = (rule, wrap) ->
-  return stringify '' unless rule?
-  return stringify rule if typeof rule is 'string'
-  unless types[rule.type]?
-    throw new Error 'No transpilation defined for rule type: ' + rule.type
-  evalued = types[rule.type] rule, wrap
-  if wrap and rule.type isnt 'Call'
-    concat [
-      'function () { return '
-      evalued
-      '}'
-    ]
-  else
-    evalued
-
-evalRules = (rules) ->
-  pushJoin ', ', rules.map (rule) -> evalRule rule
-
 pushJoin = (join, array) ->
   ret = []
   array.forEach (item, index) ->
@@ -230,18 +245,6 @@ pushJoin = (join, array) ->
     else
       ret.push item
   ret
-
-ruleDef = (rule) ->
-  concat [
-    '$rule(function rule__'
-    rule.name.replace(/-/g, '_').replace(/\./g, '__')
-    '(s) { \n'
-    'return '
-    evalRule rule.expr
-    ';\n}'
-    if rule.args? then ', ' + JSON.stringify rule.args
-    ')'
-  ]
 
 stringify = (value) ->
   "'#{jsStringEscape value}'"

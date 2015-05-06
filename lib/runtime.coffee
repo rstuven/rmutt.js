@@ -25,10 +25,10 @@ module.exports =
           @parent.vars[name] = value
       return
 
-    callfn: (name, args) ->
-      => @call name, args
+    invokeLazy: (name, args) ->
+      => @invoke name, args
 
-    call: (name, args) ->
+    invoke: (name, args) ->
 
       return if $config.maxStackDepth? and @stackDepth >= $config.maxStackDepth
 
@@ -74,7 +74,7 @@ module.exports =
   choice: ->  ->
     index = $choose arguments.length
     value = arguments[index]
-    value?() ? value # lazy rule evaluation
+    value?() ? value # lazy rule expansion
 
   ###
   # $choose
