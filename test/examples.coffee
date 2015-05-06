@@ -18,7 +18,7 @@ describe 'examples', ->
     eng: null
     gramma: null
     grammar: null
-    jcr_sv: 'skip' # error
+    jcr_sv: null
     math: null
     neruda: null
     numbers: null

@@ -54,7 +54,7 @@ packDeep = (node, pkg) ->
     node.name = pack node.name, pkg
     if node.args?
       for arg in node.args
-        packDeep arg, pkg
+        packDeep arg, pkg if arg?
 
   if node.type is 'Rule' and node.args?
     node.args.forEach (arg, i) ->
