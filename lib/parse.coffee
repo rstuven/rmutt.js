@@ -13,10 +13,10 @@ parser = peg.buildParser grammar # TODO: cache
 ###
 # parse
 ###
-module.exports = (source, config) ->
+module.exports = (source, options) ->
   rules = {}
   try
-    parse source, rules, config?.workingDir
+    parse source, rules, options?.workingDir
   catch err
     err.message += "\n    at (#{err.file}:#{err.line}:#{err.column})" if err.line? or err.column?
     console.error err

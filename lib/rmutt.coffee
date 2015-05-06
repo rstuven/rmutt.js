@@ -10,12 +10,12 @@ module.exports =
 
   compile: compile
 
-  generate: (source, config) ->
-    config ?= {}
+  generate: (source, options) ->
+    options ?= {}
 
     if typeof source is 'string'
-      compiled = compile source, config
+      compiled = compile source, options
     else if typeof source is 'function'
       compiled = source
 
-    compiled config
+    compiled options

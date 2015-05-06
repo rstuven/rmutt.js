@@ -2,7 +2,6 @@ fs = require 'fs'
 path = require 'path'
 rmutt = require '..'
 
-
 generate = (source) ->
   output = rmutt.generate source, header: file
   process.stdout.write output

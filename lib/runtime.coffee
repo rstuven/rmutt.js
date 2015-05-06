@@ -32,7 +32,7 @@ module.exports =
     invoke: (name, args) ->
       =>  # lazy
 
-        return if $config.maxStackDepth? and @stackDepth >= $config.maxStackDepth
+        return if $options.maxStackDepth? and @stackDepth >= $options.maxStackDepth
 
         uargs = -> args.map $unlazy if args?
 
@@ -56,16 +56,16 @@ module.exports =
         return value if found
 
         # external rule with arguments
-        if args? and $config.externals?[name]?
-          return $config.externals[name].apply null, uargs()
+        if args? and $options.externals?[name]?
+          return $options.externals[name].apply null, uargs()
 
         # orphan args :(
         if args?
           throw new Error "Missing parameterized rule '#{name}'"
 
         # external rule (used as transformation, probably)
-        if $config.externals?[name]?
-          return $config.externals[name]
+        if $options.externals?[name]?
+          return $options.externals[name]
 
         return name
 
@@ -83,10 +83,9 @@ module.exports =
   # $choose
   ###
   choose: -> (terms) ->
-    if $config.iteration?
-      $config.terms = terms
-      index = $config.iteration % terms
-      $config.iteration = Math.floor $config.iteration / terms
+    if $options.iteration?
+      index = $options.iteration % terms
+      $options.iteration = Math.floor $options.iteration / terms
     else
       index = Math.floor terms * Math.random()
     index

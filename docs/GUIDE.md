@@ -1,12 +1,21 @@
-# How to write rmutt grammars
+## Using rmutt.js
 
-Grammars in rmutt consist primarily of rules. Rules are *named* and specify which choices are allowable at a given point in the grammar. To do this, they can either include literal text which rmutt will output, or they can refer to other rules. The simplest rule simply associates a name with some literal text:
+First, you need to provide a grammar to **rmutt.js** via:
+
+* The [command-line interface](CLI.md)
+* The [JavaScript API](API.md)
+
+But, how to write a grammar?
+
+## Writing rmutt grammars
+
+Grammars in **rmutt** consist primarily of rules. Rules are *named* and specify which choices are allowable at a given point in the grammar. To do this, they can either include literal text which **rmutt** will output, or they can refer to other rules. The simplest rule simply associates a name with some literal text:
 
 ``` coffeescript
 day: "Thursday";
 ```
 
-This tells rmutt to produce the string "Thursday" every time it encounters the "day" rule. So for instance if rmutt encountered the rule:
+This tells **rmutt** to produce the string "Thursday" every time it encounters the `day` rule. So for instance if **rmutt** encountered the rule:
 
 ``` coffeescript
 announcement: "I'm leaving on " day;
@@ -18,7 +27,7 @@ it would produce
 I'm leaving on Thursday
 ```
 
-In the example, the literal "I'm leaving on " is followed by the term `day`, which tells rmutt to look up the rule named `day` to determine what to output next.
+In the example, the literal "I'm leaving on " is followed by the term `day`, which tells **rmutt** to look up the rule named `day` to determine what to output next.
 
 A rule can contain more than one allowable choice. Choices are separated by commas. So for instance if we change our first rule to:
 
@@ -38,17 +47,17 @@ or
 I'm leaving on Saturday
 ```
 
-rmutt chooses randomly, so there's no way to predict which choice it will make for any given rule.
+**rmutt** chooses randomly, so there's no way to predict which choice it will make for any given rule.
 
-## Anonymous rules
+### Anonymous rules
 
-Sometimes it's inconvenient to define a new rule every time you want rmutt to make a choice. To make this more convenient, rmutt allows for anonymous rules which may be used anywhere in a rule. They're set off by parentheses. For example, we could rewrite our announcement rule as follows:
+Sometimes it's inconvenient to define a new rule every time you want **rmutt** to make a choice. To make this more convenient, **rmutt** allows for anonymous rules which may be used anywhere in a rule. They're set off by parentheses. For example, we could rewrite our announcement rule as follows:
 
 ``` coffeescript
 announcement: "I'm " ("leaving" , "staying") " tomorrow";
 ```
 
-rmutt will either produce
+**rmutt** will either produce
 
 ```
 I'm leaving tomorrow
@@ -73,9 +82,9 @@ Anonymous rules can be nested arbitrarily deeply, as in this example:
 brag: "I have a " (("cool" , "fast") " car", ("great", "winning") " personality") "!";
 ```
 
-## Repetition
+### Repetition
 
-rmutt allows you to control how many times to repeat each part of a rule by specifying a minimum and maximum number of allowable repetitions. This is done with the "repetition qualifier" in the form `{min,max}` to specify a minumum and maximum number of repetitions or simply `{num}` to specify an exact number of repetitions. For example, the following rule:
+**rmutt** allows you to control how many times to repeat each part of a rule by specifying a minimum and maximum number of allowable repetitions. This is done with the "repetition qualifier" in the form `{min,max}` to specify a minumum and maximum number of repetitions or simply `{num}` to specify an exact number of repetitions. For example, the following rule:
 
 ``` coffeescript
 howfar: "very, "{3,4} "far away";
@@ -109,7 +118,7 @@ emph: "very", "really" , "extremely";
 
 which saves us having to include the comma in each choice for `emph`, since we've grouped it with the invocation of `emph` in the first rule.
 
-## Shorthand repetition qualifiers
+### Shorthand repetition qualifiers
 
 There are three shorthand repetition qualifiers that you can use in place of the braces notation. They are as follows:
 
@@ -119,9 +128,9 @@ There are three shorthand repetition qualifiers that you can use in place of the
 +	{1,5}
 ```
 
-## Embedded definitions
+### Embedded definitions
 
-In rmutt, a rule can change the definition of another rule or define a new rule. This makes certain kinds of context-dependent behavior easier to implement. For instance, suppose you had the following fragmentary English grammar:
+In **rmutt**, a rule can change the definition of another rule or define a new rule. This makes certain kinds of context-dependent behavior easier to implement. For instance, suppose you had the following fragmentary English grammar:
 
 ``` coffeescript
 vp: iv " " adv " " pp;
@@ -163,11 +172,11 @@ yelled patiently on me
 
 Embedded definitions are surrounded by parentheses, and are otherwise the same as top-level definitions. They may occur anywhere in a choice for a rule, since they produce no output. There's no limit to the number of embedded rules that a rule can contain, or to the complexity of embedded rules.
 
-The scope of rules defined by embedded definitions is lexical by default. In other words, as rmutt proceeds from left to right producing strings satisfying each grammatical unit in the sequence of units associated with a choice, any embedded rule definitions it encounters will be in effect from that time forward, but only in the subtree in which the embedded definition occurs.
+The scope of rules defined by embedded definitions is lexical by default. In other words, as **rmutt** proceeds from left to right producing strings satisfying each grammatical unit in the sequence of units associated with a choice, any embedded rule definitions it encounters will be in effect from that time forward, but only in the subtree in which the embedded definition occurs.
 
 The scope of an embedded definition can be controlled with the scope qualifier "$". If you place this qualifier in front of the label of an embedded rule, it will modify any existing binding for that label, rather than creating a new local binding. See the Turing machine example for an example of this syntax.
 
-## Variables
+### Variables
 
 Variables are another way to implement context-dependent behavior. A variable is like an embedded rule whose choices are only made once. Every time the variable is invoked, it will produce the same string. Variable assignments are indicated with an equals sign (=). For instance, the following grammar:
 
@@ -204,7 +213,7 @@ The scope of variable assignments is lexical, just like embedded definitions. In
 
 As with embedded definitions, the scope of the assignment can be controlled with the "$" scope qualifier.
 
-## Transformations: Mappings
+### Transformations: Mappings
 
 In addition to controlling what text is produced by a complex of rules, you can also apply transformations to the text produced by rules and parts of rules. Transformations are indicated with a right angle bracket which points from the rule part to the transformation which is to be applied to its output.
 
@@ -245,9 +254,9 @@ the Sparks are from L.A.
 the Comets are from Houston
 ```
 
-## Transformations: Regular Expressions
+### Transformations: Regular Expressions
 
-For the die-hard UNIX hacker inside each of us, rmutt allows regular expression substitutions to be used as transformations. A discussion of regular expressions is beyond the scope of this document. There are many useful resources on the web to help learn them. A good starting place is A Tao of Regular Expressions. One warning: the syntax of regular expressions differs significantly from application to application. rmutt uses POSIX extended regular expressions. If you don't know what that means, beware!
+For the die-hard UNIX hacker inside each of us, **rmutt** allows regular expression substitutions to be used as transformations. A discussion of regular expressions is beyond the scope of this document. There are many useful resources on the web to help learn them. A good starting place is A Tao of Regular Expressions. One warning: the syntax of regular expressions differs significantly from application to application. **rmutt** uses POSIX extended regular expressions. If you don't know what that means, beware!
 
 Regular expression substitutions are written in the form `/reg. exp./replacement/`. Here's a simple example of regular expression substitution:
 
@@ -263,7 +272,7 @@ oo lookoo too oooot oopploos oond boonoonoos
 
 Like mapping transformations, regular expression transformations can be defined as rules or enclosed in parentheses.
 
-## Transformations: Chaining
+### Transformations: Chaining
 
 Any transformation can be applied to the result of a previous transformation by transformation chaining. This is indicated simply by using a transformation as the left-hand-side of another transformation, like so:
 
@@ -282,9 +291,9 @@ name: "check", "chuck", "snap", "snipe";
 
 will produce either "chggdy" or "snppdy".
 
-## Packages
+### Packages
 
-When a grammar has many rules and variables in it, it's difficult to keep track of their names and make sure that each name is unique. This is especially a problem when combining two grammars that may have been developed independently. To solve this problem, rmutt uses "packages", requiring only that each name be unique within a package. To switch to a particular package, use the `package` statement:
+When a grammar has many rules and variables in it, it's difficult to keep track of their names and make sure that each name is unique. This is especially a problem when combining two grammars that may have been developed independently. To solve this problem, **rmutt** uses "packages", requiring only that each name be unique within a package. To switch to a particular package, use the `package` statement:
 
 ``` coffeescript
 package greeting;
@@ -316,11 +325,11 @@ ogre starts with the letter 'O', beautiful
 ogre starts with the letter 'O', Mr. Smarty Pants
 ```
 
-Before the first package statement in a grammar, rmutt considers names to be in the default package, which is a package with no name. The disadvantage of using this package is that there is no fully-qualified name for any rule or variable from the default package, since all names in rmutt, including package names, must be at least one character long. If you use a name in a package, rmutt will first search the current package for that name, and if it can't find it there will then search the default package.
+Before the first package statement in a grammar, **rmutt** considers names to be in the default package, which is a package with no name. The disadvantage of using this package is that there is no fully-qualified name for any rule or variable from the default package, since all names in **rmutt**, including package names, must be at least one character long. If you use a name in a package, **rmutt** will first search the current package for that name, and if it can't find it there will then search the default package.
 
-## Includes
+### Includes
 
-If you're familiar with C or C++, you'll recognize rmutt's syntax for merging two or more grammar files. Suppose you've written a grammar that generates random email addresses, which you've stored in a file called `email.rm`, and you'd like to reuse it in another grammar. The following example shows how to do this.
+If you're familiar with C or C++, you'll recognize **rmutt**'s syntax for merging two or more grammar files. Suppose you've written a grammar that generates random email addresses, which you've stored in a file called `email.rm`, and you'd like to reuse it in another grammar. The following example shows how to do this.
 
 ``` coffeescript
 #include "email.rm"
@@ -332,7 +341,7 @@ In this example, the `email_addr` rule from email.rm is used. When you use an in
 
 Includes can occur anywhere in a grammar.
 
-## Probability multipliers
+### Probability multipliers
 
 A choice can be followed by an optional probability multiplier, which increases the probability that it will be selected, relative to other choices in the same rule. A probability multiplier consists of an integer at the end of a choice. Larger integers denote higher selection probabilities. For instance
 
@@ -348,52 +357,14 @@ number: digit{16};
 digit: "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "1";
 ```
 
-rmutt does not support non-integer weights on choices, because this would make it impossible to enumerate all possible outcomes for a given grammar.
+**rmutt** does not support non-integer weights on choices, because this would make it impossible to enumerate all possible outcomes for a given grammar.
 
-## Running rmutt
 
-rmutt is a command-line program which accepts a grammar as an input. If you have a file with an rmutt grammar on it, you can mention it on the command line like this:
-
-```
-npm install --global rmutt
-```
-
-```
-rmutt myfile.rm
-```
-
-If you want to save the output to a file you can simply redirect it:
-
-```
-rmutt myfile.rm > myoutputfile
-```
-
-If you have a program which generates an rmutt grammar, you can pipe it through rmutt. For example:
-
-```
-echo "night-sky:('.' 5,' ' 100, '*'){100000};" | rmutt
-```
-(without double quotes in Windows)
-
-Note: rmutt does not require that the names of grammar files end with `.rm` or any other specific extension.
-
-## TODO: Command-line options
-
-* -s [stack depth]: Specify the maximum depth to which rmutt will expand the grammar. This is usually used to prevent recursive grammars from crashing rmutt with stack overflows. Beyond the maximum stack depth, a rule will expand to an empty, zero-length string.
-
-* -r [random seed]: Specify a seed for the random number generator. Two runs against the same grammar with the same seed will generate identical output. If no seed is specified, a seed is generated using the current system clock.
-
-* -i [iteration]: A given rmutt grammar can generate n possible strings, where n is finite or infnite depending on whether or not the grammar is recursive. Specifying an iteration will generate the nth possible string. If the iteration specified (call it i) is greater than n, rmutt will generate the (i mod n)th iteration. Enumerating all possible strings of a grammar is usually only useful for very simple grammars; most grammars can produce more strings than can be enumerated with a C int.
-
-* --entry -e [label]: To produce a string, rmutt must start with one of the rules in the grammar. Use this option to specify which one. By default, rmutt expands the first rule it finds in the grammar.
-
-* -v: Print version and other information and exit.
-
-## Other Important Things
+## Other important things
 
 ### Entry point
 
-By default, rmutt invokes the first rule in its input. Think of this as the "entry point" for your grammar.
+By default, **rmutt** invokes the first rule in its input. Think of this as the "entry point" for your grammar. This is configurable from the [CLI](CLI.md) and the [API](API.md).
 
 ### Line breaks
 
@@ -403,14 +374,14 @@ By default, rmutt invokes the first rule in its input. Think of this as the "ent
 
 ### Circular references
 
-rmutt cannot detect certain kinds of errors; in particular, if your grammar is endlessly recursive, like so:
+**rmutt** cannot detect certain kinds of errors; in particular, if your grammar is endlessly recursive, like so:
 
 ``` coffeescript
 deadly: embrace;
 embrace: deadly;
 ```
 
-rmutt will run out of memory and silently fail as it tries to make an infinitely-long string. To mitigate this you can use the `-s` command line option, which sets a limit on the recursion depth. Past the limit, rules will simply fail to expand. For instance if the file `foo.rm` contained the following grammar:
+**rmutt** will run out of memory and silently fail as it tries to make an infinitely-long string. To mitigate this you can use the `-s` command line option, which sets a limit on the recursion depth. Past the limit, rules will simply fail to expand. For instance if the file `foo.rm` contained the following grammar:
 
 ```coffeescript
 foo: "yes" bar;
@@ -451,7 +422,7 @@ aRule: ("clam"{2,10}) > /mc/m, c/ "!";
 
 ### Comments
 
-Comments can be included in rmutt grammars. If two slashes in a row (`//`) occur anywhere on a line, the rest of the line is treated as a comment and ignored.
+Comments can be included in **rmutt** grammars. If two slashes in a row (`//`) occur anywhere on a line, the rest of the line is treated as a comment and ignored.
 
 
 ### Special characters
@@ -468,7 +439,7 @@ Curiosities
 
 ### Turing-complete
 
-rmutt is Turing-complete. Here is an implementation of a Turing machine in rmutt 2.3.
+**rmutt** is Turing-complete. [Here](../examples/turing.rm) is an implementation of a Turing machine in **rmutt**.
 
 ---
 > *This guide is mostly based on [the original rmutt documentation](https://web.archive.org/web/20120208110629/http://www.schneertz.com/rmutt/docs.html) by Joe Futrelle.*

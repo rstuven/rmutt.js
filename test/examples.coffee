@@ -7,7 +7,7 @@ describe 'examples', ->
 
   LOG_OUTPUT = false
 
-  config =
+  options =
     workingDir: examplesDir
     cache: false
     cacheRegenerate: true
@@ -47,20 +47,20 @@ describe 'examples', ->
   example = (name) ->
     fs = require 'fs'
     file  = name + '.rm'
-    source = fs.readFileSync examplesDir + file, 'utf8'
-    # console.log source
+    grammar = fs.readFileSync examplesDir + file, 'utf8'
+    # console.log grammar
 
     if LOG_OUTPUT
       console.log('\n' + file + ':')
 
     # console.time('compile')
-    config.header = file
-    compiled = rmutt.compile source, config
+    options.header = file
+    generator = rmutt.compile grammar, options
     # console.timeEnd('compile')
-    # console.log compiled.toString()
+    # console.log generator.toString()
 
     # console.time('generate')
-    output = compiled()
+    output = generator()
     # console.timeEnd('generate')
 
     if LOG_OUTPUT

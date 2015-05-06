@@ -11,12 +11,12 @@ transpile = require './transpile'
 ###
 # compile
 ###
-module.exports = (source, config) ->
-  cache = config?.cache ? false
+module.exports = (source, options) ->
+  cache = options?.cache ? false
   if cache
-    transpiled = readOrCreateCache source, config
+    transpiled = readOrCreateCache source, options
   else
-    transpiled = transpile source, config
+    transpiled = transpile source, options
 
   # console.log transpiled
   compiled = new Function 'module', transpiled
@@ -25,13 +25,13 @@ module.exports = (source, config) ->
   compiled module
   return module.exports
 
-readOrCreateCache = (source, config) ->
+readOrCreateCache = (source, options) ->
   # TODO: include in hash modifications dates of rmutt.pegjs, parse.coffee & transpile.coffee
-  cached = config.cacheFile ? path.join os.tmpdir(), 'rmutt_' + hash source
-  if config.cacheRegenerate isnt true and fs.existsSync cached
+  cached = options.cacheFile ? path.join os.tmpdir(), 'rmutt_' + hash source
+  if options.cacheRegenerate isnt true and fs.existsSync cached
     console.log 'Loading cache: ', cached
     transpiled = fs.readFileSync cached
   else
-    transpiled = transpile source, config
+    transpiled = transpile source, options
     fs.writeFileSync cached, transpiled
   transpiled

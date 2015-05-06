@@ -1,17 +1,17 @@
 rmutt = require '..'
 
-describe 'performance', ->
+describe.skip 'performance', ->
 
   it 'parse nested parens', ->
     @timeout 100
-    source = """
+    grammar = """
       a:(((((((b)))))));
     """
-    rmutt.compile source
+    rmutt.transpile grammar
 
   it 'parse this rule from math.rm', ->
-    @timeout 1000
-    source = """
+    @timeout 500
+    grammar = """
       add[a,b]:
         zupfx[
          (sum="NaN")
@@ -24,4 +24,4 @@ describe 'performance', ->
            m l))
         ];
     """
-    rmutt.compile source
+    rmutt.transpile grammar
