@@ -1,6 +1,7 @@
 _ = require 'lodash'
 jsStringEscape = require 'js-string-escape'
 runtime = require './runtime'
+parse = require './parse'
 product = require '../package.json'
 push = Array.prototype.push
 
@@ -9,6 +10,7 @@ push = Array.prototype.push
 ###
 module.exports = (rules, config) ->
   config ?= {}
+  rules = parse rules, config if typeof rules is 'string'
   result = transpile rules, config
   # console.log result
   result
@@ -29,7 +31,7 @@ transpile = (rules, config) ->
 
   # runtime
   _.each runtime, (fn, name) ->
-    result.push 'var $', name , ' = ', fn.toString(), ';\n'
+    result.push 'var $', name , ' = (', fn.toString(), ')();\n'
 
   # global scope
   result.push 'var $global = {};\n\n'
@@ -122,9 +124,6 @@ types =
   Rule: (rule) ->
     assignment rule, ruleDef rule
 
-  String: (rule) ->
-    "'#{jsStringEscape rule.value}'"
-
   Terms: (rule) ->
 
     # Simplify single term
@@ -193,7 +192,7 @@ assignment = (rule, evalued) ->
     else 'g'
 
   concat [
-    "$assign('#{scope}', s, '#{rule.name}', "
+    "s.assign('#{scope}', '#{rule.name}', "
     evalued
     ')'
   ]
@@ -204,8 +203,8 @@ concat = (values) ->
   , []
 
 evalRule = (rule, wrap) ->
-  return types.String value: '' unless rule?
-  return types.String value: rule if typeof rule is 'string'
+  return stringify '' unless rule?
+  return stringify rule if typeof rule is 'string'
   unless types[rule.type]?
     throw new Error 'No transpilation defined for rule type: ' + rule.type
   evalued = types[rule.type] rule, wrap
@@ -243,3 +242,6 @@ ruleDef = (rule) ->
     if rule.args? then ', ' + JSON.stringify rule.args
     ')'
   ]
+
+stringify = (value) ->
+  "'#{jsStringEscape value}'"
