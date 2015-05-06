@@ -1,5 +1,4 @@
 # TODO:
-## Add `examples` directory
 ## Write commentary about transpilation, grammar compiled as JavaScript function.
 
 

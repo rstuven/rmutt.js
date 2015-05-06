@@ -14,7 +14,7 @@ describe 'rmutt', ->
 
   examplesDir = __dirname + '/../examples/'
 
-  describe.skip 'examples', ->
+  describe 'examples', ->
 
     example = (file) ->
       fs = require 'fs'
@@ -115,6 +115,10 @@ describe 'rmutt', ->
 
 describe 'rmutt', ->
 
+  it 'should be fast to parse nested parens', ->
+    source = "a:(((((b)))));"
+    rmutt.compile source
+
   it '_t0', ->
     source = """
       meta-vp:
@@ -188,15 +192,15 @@ describe 'rmutt', ->
       t: "0" a;
       a: "1" t;
     """
-    expect(rmutt.generate source)
-      .to.equal '010101'
+    expect(-> rmutt.generate source)
+      .to.throw /Maximum call stack size exceeded/
 
   it 't2b - circular recursion configurable', ->
     source = """
       t: "0" a;
       a: "1" t;
     """
-    expect(rmutt.generate source, maxStackSize: 10)
+    expect(rmutt.generate source, maxStackDepth: 10)
       .to.equal '01010101010'
 
   it 't3 - anonymous rules', ->
@@ -581,8 +585,9 @@ describe 'rmutt', ->
         top: expr " = " (expr > calc);
         expr: "1 + 2";
       """
-      expect(-> rmutt.generate source)
-        .to.throw /'calc' is not a function/
+      expect(rmutt.generate source)
+        .to.equal '1 + 2 = 1 + 2'
+        # .to.throw /'calc' is not a function/
 
     it 'used as tramsformation', ->
       source = """

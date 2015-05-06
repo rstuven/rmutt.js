@@ -22,7 +22,7 @@ module.exports =
   ###
   call: (local, name, args) ->
 
-    return if local.depth > ($config.maxStackSize ? 5)
+    return if $config.maxStackDepth? and local.stackDepth > $config.maxStackDepth
 
     get = (vars) ->
       if vars?.hasOwnProperty name
@@ -105,6 +105,8 @@ module.exports =
   ###
   mapping: (search, replace) ->
     (input) ->
+      return unless input?
+      return input unless replace?
       input.replace new RegExp(search, 'g'), ->
         args = arguments
         (replace?() ? replace).replace /\\(\d+)/g, (m, n) -> args[n]
@@ -146,9 +148,9 @@ module.exports =
       for k, v of parent.vars
         local.vars[k] = v
       local.parent = parent
-      local.depth = parent.depth + 1
+      local.stackDepth = parent.stackDepth + 1
     else
-      local.depth = 1
+      local.stackDepth = 1
 
     local
 
@@ -157,5 +159,6 @@ module.exports =
   ###
   transform: (expr, fn) ->
     unless typeof fn is 'function'
-      throw new Error "Processing grammar: expression '#{fn?.toString()}' is not a function"
+      # console.warn "Transform expression '#{fn?.toString()}' is not a function"
+      return expr
     fn expr
