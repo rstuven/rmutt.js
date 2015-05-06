@@ -45,25 +45,39 @@ describe 'generation', ->
       a: "1"|t;
     """
     expectWithOracle source, [
-      '1'
-      '0', '1', '0', '0', '0', '1', '0'
+      '0'
+              '0'
+              '1'
+              '0'
+          '0'
+              '0'
+              '1'
+              '0'
+          '1'
+              '0'
+              '1'
+              '0'
+          '0'
+              '0'
+              '1'
+              '0'
     ]
 
   it 't2b - circular recursion', ->
     source = """
-      t: "0" a;
-      a: "1" t;
+      foo: "yes" bar;
+      bar: foo;
     """
     expect(-> rmutt.generate source)
       .to.throw /Maximum call stack size exceeded/
 
-  it 't2b - circular recursion configurable', ->
+  it 't2c - configurable maximum stack depth', ->
     source = """
-      t: "0" a;
-      a: "1" t;
+      foo: "yes" bar;
+      bar: foo;
     """
-    expect(rmutt.generate source, maxStackDepth: 10)
-      .to.equal '01010101010'
+    expect(rmutt.generate source, maxStackDepth: 20)
+      .to.equal 'yesyesyesyesyesyesyesyesyesyes'
 
   it 't3 - anonymous rules', ->
     source = """

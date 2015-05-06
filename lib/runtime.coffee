@@ -22,7 +22,7 @@ module.exports =
   ###
   call: (local, name, args) ->
 
-    return if $config.maxStackDepth? and local.stackDepth > $config.maxStackDepth
+    return if $config.maxStackDepth? and local.stackDepth >= $config.maxStackDepth
 
     get = (vars) ->
       if vars?.hasOwnProperty name
