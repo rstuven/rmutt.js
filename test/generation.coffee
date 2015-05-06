@@ -10,169 +10,12 @@ expectWithOracle = (source, expected) ->
 # TODO: empty grammar test
 # TODO: undefined config test
 
-describe 'rmutt', ->
-
-  examplesDir = __dirname + '/../examples/'
-
-  describe 'examples', ->
-
-    example = (file) ->
-      fs = require 'fs'
-      source = fs.readFileSync examplesDir + file, 'utf8'
-      # console.log source
-
-      # console.log('\n' + file + ':')
-      # console.time('compile')
-      compiled = rmutt.compile source,
-        workingDir: examplesDir
-        header: file
-        cache: false
-        cacheRegenerate: true
-      # console.timeEnd('compile')
-      # console.log compiled.toString()
-
-      # console.time('generate')
-      output = compiled()
-      # console.timeEnd('generate')
-
-      # console.log()
-      # console.log output
-
-    # TODO: skipped errors
-    it 'addresses.rm', -> example 'addresses.rm'
-    it 'author.rm', -> example 'author.rm'
-    it 'bands.rm', -> example 'bands.rm'
-    it 'chars.rm', -> example 'chars.rm'
-    it 'dialogue.rm', -> example 'dialogue.rm'
-    it 'directions.rm', -> example 'directions.rm'
-    it 'dissertation.rm', -> example 'dissertation.rm'
-    it 'dotree.rm', -> example 'dotree.rm'
-    it 'eng.rm', -> example 'eng.rm'
-    it 'gramma.rm', -> example 'gramma.rm'
-    it 'grammar.rm', -> example 'grammar.rm'
-    it.skip 'jcr_sv.rm', -> example 'jcr_sv.rm' # error
-    it.skip 'math.rm', -> example 'math.rm' # error
-    it 'neruda.rm', -> example 'neruda.rm'
-    it 'numbers.rm', -> example 'numbers.rm'
-    it 'password.rm', ->  example 'password.rm'
-    it 'password2.rm', -> example 'password2.rm'
-    it 'recipe.rm', -> example 'recipe.rm'
-    it 'sentence.rm', -> example 'sentence.rm'
-    it 'slogan.rm', -> example 'slogan.rm'
-    it 'spew.rm', -> example 'spew.rm'
-    it 'spew_xml.rm', -> example 'spew_xml.rm'
-    it 'story.rm', -> example 'story.rm'
-    it.skip 'sva.rm', -> example 'sva.rm' # error
-    it 'tree.rm', -> example 'tree.rm'
-    it.skip 'turing.rm', -> example 'turing.rm' # error
-    it 'url.rm', -> example 'url.rm'
-    it 'wine.rm', -> example 'wine.rm'
-    it 'xml.rm', -> example 'xml.rm'
-
-  it 'rule call from parameter', ->
-    source = """
-      package test;
-      top: a[b["c"]];
-      a[p]:p;
-      b[p]:p;
-    """
-    expect(rmutt.generate source)
-      .to.equal 'c'
+describe 'generation', ->
 
   it 'more than one dash in rule identifier', ->
     source = 'a-b-c:"x";'
     expect(rmutt.generate source)
       .to.equal 'x'
-
-  it 'repeat with variety', ->
-    source = """
-      top: a{2};
-      a: "x", "y";
-    """
-    expectWithOracle source, [
-      'yy'
-      'xy'
-      'yx'
-      'xx'
-    ]
-
-  it 'terms parameter', ->
-    source = """
-      top: a[b c];
-      a[x]: x;
-    """
-    expect(rmutt.generate source)
-      .to.equal 'bc'
-
-  it 'paramater has local precedence in package', ->
-    source = """
-      package test;
-      top: a['x'];
-      a[p]: p;
-      p: 'y';
-    """
-    expect(rmutt.generate source)
-      .to.equal 'x'
-
-describe 'rmutt', ->
-
-  it 'should be fast to parse nested parens', ->
-    @timeout 100
-    source = "a:(((((((b)))))));"
-    rmutt.compile source
-
-  it 'should be fast to parse this rule (from math.rm)', ->
-    @timeout 500
-    source = """
-      add[a,b]:
-        zupfx[
-         (sum="NaN")
-         (ignore=a>"0"%(^sum=b))
-         (ignore=b>"0"%(^sum=a))
-         (sum>"NaN"%(
-           (l = add_d[lsd[a],lsd[b]])
-           (m=add[zpfx[msds[a]],zpfx[msds[b]]])
-           (ignore=(msds[l] > "1" % ((^m=inc[m]) (^l=l > /1(.)/\\1/))))
-           m l))
-        ];
-    """
-    rmutt.compile source
-
-  it '_t0', ->
-    source = """
-      meta-vp:
-      (iv: "ate") (prep: "with") vp,
-      (iv: "yelled") (prep: "at") vp,
-      (iv: "waited") (prep: "for","on","with") vp;
-      vp: iv " " adv " " pp;
-      pp: prep " " obj;
-      obj: "you", "me";
-      adv: "patiently", "impatiently";
-    """
-    compiled = rmutt.compile source
-
-    expect(compiled oracle: 0)
-      .to.equal 'ate patiently with you'
-
-    expect(compiled oracle: 200)
-      .to.equal 'waited patiently for me'
-
-    expect(compiled oracle: 400)
-      .to.equal 'yelled impatiently at you'
-
-  it 't0', ->
-    source = """
-      s: (character = name, position) character " said, 'I am " character ", so nice to meet you.'";
-      name: title " " firstName " " lastName;
-      title: "Dr.", "Mr.", "Mrs.", "Ms";
-      firstName: "Nancy", "Reginald", "Edna", "Archibald";
-      lastName: "McPhee", "Eaton-Hogg", "Worthingham";
-      position: "the butler", "the chauffeur";
-    """
-    expectWithOracle source, [
-      "the butler said, 'I am the butler, so nice to meet you.'"
-      "Dr. Nancy McPhee said, 'I am Dr. Nancy McPhee, so nice to meet you.'"
-    ]
 
   it 't1 - random selection', ->
     source = """
@@ -273,6 +116,18 @@ describe 'rmutt', ->
       'aabbe'
     ]
 
+  it 'repeat with variety', ->
+    source = """
+      top: a{2};
+      a: "x", "y";
+    """
+    expectWithOracle source, [
+      'yy'
+      'xy'
+      'yx'
+      'xx'
+    ]
+
   it 'repetition in package', ->
     source = """
       package p;
@@ -291,6 +146,28 @@ describe 'rmutt', ->
       '0'
     ]
 
+  it 'embedded definitions', ->
+    source = """
+      meta-vp:
+      (iv: "ate") (prep: "with") vp,
+      (iv: "yelled") (prep: "at") vp,
+      (iv: "waited") (prep: "for","on","with") vp;
+      vp: iv " " adv " " pp;
+      pp: prep " " obj;
+      obj: "you", "me";
+      adv: "patiently", "impatiently";
+    """
+    compiled = rmutt.compile source
+
+    expect(compiled oracle: 0)
+      .to.equal 'ate patiently with you'
+
+    expect(compiled oracle: 200)
+      .to.equal 'waited patiently for me'
+
+    expect(compiled oracle: 400)
+      .to.equal 'yelled impatiently at you'
+
   it 't7 - variables', ->
     source = """
       t: (a = "0" | "1") a a;
@@ -298,6 +175,20 @@ describe 'rmutt', ->
     expectWithOracle source, [
       '11'
       '00'
+    ]
+
+  it 'variable', ->
+    source = """
+      s: (character = name, position) character " said, 'I am " character ", so nice to meet you.'";
+      name: title " " firstName " " lastName;
+      title: "Dr.", "Mr.", "Mrs.", "Ms";
+      firstName: "Nancy", "Reginald", "Edna", "Archibald";
+      lastName: "McPhee", "Eaton-Hogg", "Worthingham";
+      position: "the butler", "the chauffeur";
+    """
+    expectWithOracle source, [
+      "the butler said, 'I am the butler, so nice to meet you.'"
+      "Dr. Nancy McPhee said, 'I am Dr. Nancy McPhee, so nice to meet you.'"
     ]
 
   it 't8 - mappings', ->
@@ -335,6 +226,17 @@ describe 'rmutt', ->
     """
     expect(rmutt.generate source)
       .to.equal 'yyy'
+
+  it 't13 - complex mapping syntax', ->
+    source = """
+      a: ("a"|"b")>("a"%("0"|"zero") "b"%("1"|"one"));
+    """
+    expectWithOracle source, [
+      'one'
+      'zero'
+      '1'
+      '0'
+    ]
 
   it 't9 - regexes', ->
     source = """
@@ -438,36 +340,27 @@ describe 'rmutt', ->
       "oatmeal starts with the letter 'O', beautiful"
     ]
 
-  it 't12 - probability multipliers', ->
-    source = """
-      package test;
-      a: "0" 3| "1";
-    """
-    expectWithOracle source, [
-      '1'
-      '0'
-      '0'
-      '0'
-    ]
+  describe 'multiplier', ->
 
-  it 't12b - ignore no choice multiplier', ->
-    source = """
-      package test;
-      a: "x" "y" "z" 3;
-    """
-    expect(rmutt.generate source)
-      .to.equal 'xyz'
+    it 't12 - probability multipliers', ->
+      source = """
+        package test;
+        a: "0" 3| "1";
+      """
+      expectWithOracle source, [
+        '1'
+        '0'
+        '0'
+        '0'
+      ]
 
-  it 't13 - complex mapping syntax', ->
-    source = """
-      a: ("a"|"b")>("a"%("0"|"zero") "b"%("1"|"one"));
-    """
-    expectWithOracle source, [
-      'one'
-      'zero'
-      '1'
-      '0'
-    ]
+    it 't12b - ignore multiplier outside choice', ->
+      source = """
+        package test;
+        a: "x" "y" "z" 3;
+      """
+      expect(rmutt.generate source)
+        .to.equal 'xyz'
 
   it 't14 - includes', ->
     source = """
@@ -477,67 +370,99 @@ describe 'rmutt', ->
     expect(rmutt.generate source, oracle: 0)
       .to.equal 'yes!'
 
-  it 't15 - scope qualifiers', ->
-    source = """
-      r: ((a="foo") a ($b="bar")) b " "
-      ((c:"foo"|"bar") c ($d:"baz"|"quux") d) d "\\n";
-    """
-    expectWithOracle source, [
-      'foobar barquuxquux\n'
-      'foobar fooquuxquux\n'
-      'foobar barbazquux\n'
-      'foobar foobazquux\n'
-      'foobar barquuxbaz\n'
-      'foobar fooquuxbaz\n'
-      'foobar barbazbaz\n'
-      'foobar foobazbaz\n'
-    ]
+  describe 'rule arguments', ->
 
-  it 't16 - positional arguments', ->
-    source = """
-      foo: (bar["thing","blah","foo"] "ie"){20};
-      bar[a,b,c]: "i like " _1 " and " b " and " c;
-    """
-    expect(rmutt.generate source)
-      .to.equal 'i like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooie'
+    it 't16 - positional arguments', ->
+      source = """
+        foo: (bar["thing","blah","foo"] "ie"){20};
+        bar[a,b,c]: "i like " _1 " and " b " and " _3;
+      """
+      expect(rmutt.generate source)
+        .to.equal 'i like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooie'
 
-  # more examples of non-local: math.rm, sva.rm
-  # more examples of global: turing.rm, SecomPR.rm
-  it 't17 - scope qualifiers: non-local', ->
-    source = """
-      tests:
-       local.top " "
-       global.top " "
-       parent.top " "
-      ;
+    it 'terms as argument', ->
+      source = """
+        top: a[b c];
+        a[x]: x;
+      """
+      expect(rmutt.generate source)
+        .to.equal 'bc'
 
-      package local;
+    it 'rule call as argument', ->
+      source = """
+        package test;
+        top: a[b["c"]];
+        a[p]:p;
+        b[p]:p;
+      """
+      expect(rmutt.generate source)
+        .to.equal 'c'
 
-      top: A X;
+    it 'argument has local precedence in package', ->
+      source = """
+        package test;
+        top: a['x'];
+        a[p]: p;
+        p: 'y';
+      """
+      expect(rmutt.generate source)
+        .to.equal 'x'
 
-      A: (X="1") B X;
-      B: (X="2") C X;
-      C: (X="3") X;
+  describe 'scope', ->
 
-      package parent;
+    it 't15 - scope qualifiers', ->
+      source = """
+        r: ((a="foo") a ($b="bar")) b " "
+        ((c:"foo"|"bar") c ($d:"baz"|"quux") d) d "\\n";
+      """
+      expectWithOracle source, [
+        'foobar barquuxquux\n'
+        'foobar fooquuxquux\n'
+        'foobar barbazquux\n'
+        'foobar foobazquux\n'
+        'foobar barquuxbaz\n'
+        'foobar fooquuxbaz\n'
+        'foobar barbazbaz\n'
+        'foobar foobazbaz\n'
+      ]
 
-      top: A X;
+    # more examples of parent: math.rm, sva.rm
+    # more examples of global: turing.rm, SecomPR.rm
+    it 't17 - scope qualifiers: parent', ->
+      source = """
+        tests:
+         local.top " "
+         global.top " "
+         parent.top " "
+        ;
 
-      A: (X="1") B X;
-      B: (X="2") C X;
-      C: (^X="3") X;
+        package local;
 
-      package global;
+        top: A X;
 
-      top: A X;
+        A: (X="1") B X;
+        B: (X="2") C X;
+        C: (X="3") X;
 
-      A: (X="1") B X;
-      B: (X="2") C X;
-      C: ($X="3") X;
-    """
+        package parent;
 
-    expect(rmutt.generate source)
-      .to.equal '321local.X 2213 331parent.X '
+        top: A X;
+
+        A: (X="1") B X;
+        B: (X="2") C X;
+        C: (^X="3") X;
+
+        package global;
+
+        top: A X;
+
+        A: (X="1") B X;
+        B: (X="2") C X;
+        C: ($X="3") X;
+      """
+
+      expect(rmutt.generate source)
+        .to.equal '321local.X 2213 331parent.X '
 
   it 't18 - imports', ->
     source = """
