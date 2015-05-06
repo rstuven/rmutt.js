@@ -19,7 +19,7 @@ describe 'examples', ->
     gramma: null
     grammar: null
     jcr_sv: 'skip' # error
-    math: 'skip' # error
+    math: null
     neruda: null
     numbers: null
     password: null
