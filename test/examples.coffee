@@ -32,7 +32,7 @@ describe 'examples', ->
     story: null
     sva: 'skip' # error
     tree: null
-    turing: 'skip' # error
+    turing: null
     url: null
     wine: null
     xml: null

@@ -204,6 +204,7 @@ concat = (values) ->
   , []
 
 evalRule = (rule, wrap) ->
+  return types.String value: '' unless rule?
   return types.String value: rule if typeof rule is 'string'
   unless types[rule.type]?
     throw new Error 'No transpilation defined for rule type: ' + rule.type
