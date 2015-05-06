@@ -72,6 +72,7 @@ parse = (source, rules, dir) ->
   pkg = undefined
   entry = undefined
   ast = parser.parse source
+  # console.dir ast, depth: 20, colors: true
   _.each ast, (node) ->
     switch node.type
       when 'Include'

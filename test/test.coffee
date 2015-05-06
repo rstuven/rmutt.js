@@ -52,7 +52,7 @@ describe 'rmutt', ->
     it 'grammar.rm', -> example 'grammar.rm'
     it.skip 'jcr_sv.rm', -> example 'jcr_sv.rm' # error
     it.skip 'math.rm', -> example 'math.rm' # error
-    it.skip 'neruda.rm', -> example 'neruda.rm' # error
+    it 'neruda.rm', -> example 'neruda.rm'
     it 'numbers.rm', -> example 'numbers.rm'
     it 'password.rm', ->  example 'password.rm'
     it 'password2.rm', -> example 'password2.rm'
@@ -60,14 +60,14 @@ describe 'rmutt', ->
     it 'sentence.rm', -> example 'sentence.rm'
     it 'slogan.rm', -> example 'slogan.rm'
     it 'spew.rm', -> example 'spew.rm'
-    it.skip 'spew_xml.rm', -> example 'spew_xml.rm' # error
+    it 'spew_xml.rm', -> example 'spew_xml.rm'
     it 'story.rm', -> example 'story.rm'
     it.skip 'sva.rm', -> example 'sva.rm' # error
-    it.skip 'tree.rm', -> example 'tree.rm' # error
+    it 'tree.rm', -> example 'tree.rm'
     it.skip 'turing.rm', -> example 'turing.rm' # error
     it 'url.rm', -> example 'url.rm'
     it 'wine.rm', -> example 'wine.rm'
-    it.skip 'xml.rm', -> example 'xml.rm' # error
+    it 'xml.rm', -> example 'xml.rm'
 
   it 'rule call from parameter', ->
     source = """
@@ -122,7 +122,7 @@ describe 'rmutt', ->
     rmutt.compile source
 
   it 'should be fast to parse this rule (from math.rm)', ->
-    @timeout 300
+    @timeout 500
     source = """
       add[a,b]:
         zupfx[
