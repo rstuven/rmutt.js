@@ -1,9 +1,12 @@
+transpile = require './transpile'
 compile = require './compile'
 
 ###
 # rmutt
 ###
 module.exports =
+
+  transpile: transpile
 
   compile: compile
 

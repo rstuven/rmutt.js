@@ -3,7 +3,6 @@ fs = require 'fs'
 os = require 'os'
 path  = require 'path'
 hash = require 'string-hash'
-parse = require './parse'
 transpile = require './transpile'
 
 # TODO: stats
@@ -17,7 +16,7 @@ module.exports = (source, config) ->
   if cache
     transpiled = readOrCreateCache source, config
   else
-    transpiled = transpile parse(source, config), config
+    transpiled = transpile source, config
 
   # console.log transpiled
   compiled = new Function 'module', transpiled
@@ -33,6 +32,6 @@ readOrCreateCache = (source, config) ->
     console.log 'Loading cache: ', cached
     transpiled = fs.readFileSync cached
   else
-    transpiled = transpile parse(source, config), config
+    transpiled = transpile source, config
     fs.writeFileSync cached, transpiled
   transpiled
