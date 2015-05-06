@@ -10,7 +10,7 @@ describe 'performance', ->
     rmutt.compile source
 
   it 'parse this rule from math.rm', ->
-    @timeout 500
+    @timeout 1000
     source = """
       add[a,b]:
         zupfx[

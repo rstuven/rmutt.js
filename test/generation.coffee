@@ -1,16 +1,16 @@
 rmutt = require '..'
 expect = require('chai').expect
 
-expectWithOracle = (source, expected) ->
-  compiled = rmutt.compile source
-  for result, index in expected.reverse()
-    expect(compiled oracle: index)
-      .to.equal result
-
 # TODO: empty grammar test
 # TODO: undefined config test
 
 describe 'generation', ->
+
+  expectWithOracle = (source, expected) ->
+    compiled = rmutt.compile source
+    for result, index in expected.reverse()
+      expect(compiled oracle: index)
+        .to.equal result
 
   it 'more than one dash in rule identifier', ->
     source = 'a-b-c:"x";'
@@ -402,7 +402,7 @@ describe 'generation', ->
       expect(rmutt.generate source)
         .to.equal 'bc'
 
-    it 'rule call as argument', ->
+    it 'rule invocation as argument', ->
       source = """
         package test;
         top: a[b["c"]];
@@ -441,12 +441,12 @@ describe 'generation', ->
       ]
 
     # more examples of parent: math.rm, sva.rm
-    # more examples of global: turing.rm, SecomPR.rm
+    # more examples of root: turing.rm, SecomPR.rm
     it 't17 - scope qualifiers: parent', ->
       source = """
         tests:
          local.top " "
-         global.top " "
+         root.top " "
          parent.top " "
         ;
 
@@ -466,7 +466,7 @@ describe 'generation', ->
         B: (X="2") C X;
         C: (^X="3") X;
 
-        package global;
+        package root;
 
         top: A X;
 

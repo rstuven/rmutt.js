@@ -5,6 +5,11 @@ describe 'examples', ->
 
   examplesDir = __dirname + '/../examples/'
 
+  config =
+    workingDir: examplesDir
+    cache: false
+    cacheRegenerate: true
+
   # TODO: skipped errors
   examples =
     addresses: null
@@ -37,7 +42,6 @@ describe 'examples', ->
     wine: null
     xml: null
 
-
   example = (name) ->
     fs = require 'fs'
     file  = name + '.rm'
@@ -46,11 +50,8 @@ describe 'examples', ->
 
     # console.log('\n' + file + ':')
     # console.time('compile')
-    compiled = rmutt.compile source,
-      workingDir: examplesDir
-      header: file
-      cache: false
-      cacheRegenerate: true
+    config.header = file
+    compiled = rmutt.compile source, config
     # console.timeEnd('compile')
     # console.log compiled.toString()
 

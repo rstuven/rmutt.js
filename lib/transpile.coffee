@@ -1,5 +1,4 @@
 _ = require 'lodash'
-jsStringEscape = require 'js-string-escape'
 runtime = require './runtime'
 parse = require './parse'
 product = require '../package.json'
@@ -17,6 +16,9 @@ module.exports = (input, config) ->
   result = transpile rules, config
   # console.log result
   result
+
+ROOT_SCOPE_VAR = '$root'
+LOCAL_SCOPE_VAR = '$'
 
 transpile = (rules, config) ->
   # console.dir rules, colors: true, depth:10
@@ -36,22 +38,21 @@ transpile = (rules, config) ->
   _.each runtime, (fn, name) ->
     result.push 'var $', name , ' = (', fn.toString(), ')();\n'
 
-  # global scope
-  result.push 'var $global = {};\n\n'
+  # root scope
+  result.push 'var ', ROOT_SCOPE_VAR, ' = new $Scope();\n\n'
   _.each rules, (rule, name) ->
     return if name is '$entry'
     push.apply result, concat [
-      "$global['#{name}'] = "
-      generateRuleDefinition rule
+      generateAssignment ROOT_SCOPE_VAR, rule, generateRuleDefinition rule
       ';\n\n'
     ]
 
   # kick off
   entry = config.entry ? rules.$entry
   if entry?
-    result.push "return $global[$config.entry || '#{entry}']();\n"
+    result.push 'return ', ROOT_SCOPE_VAR, ".invoke($config.entry || '#{entry}');\n"
   else
-    result.push "if ($config.entry != null) return $global[$config.entry]();\n"
+    result.push 'if ($config.entry != null) return ', ROOT_SCOPE_VAR,'.invoke($config.entry);\n'
 
   # done!
   result.push '};'
@@ -63,10 +64,8 @@ composable = ['Mapping']
 
 types =
 
-  # DEVNOTE: In alphabetical order
-
   Assignment: (rule) ->
-    generateAssignment rule, generateRule rule.expr
+    generateAssignment LOCAL_SCOPE_VAR, rule, generateRule rule.expr
 
   Choice: (rule) ->
 
@@ -92,7 +91,8 @@ types =
   Invocation: (rule, lazy) ->
     args = rule.args?
     concat [
-      's.invoke'
+      LOCAL_SCOPE_VAR
+      '.invoke'
       if lazy then 'Lazy'
       "('#{rule.name}'"
       if args then ', ['
@@ -125,7 +125,7 @@ types =
     ]
 
   Rule: (rule) ->
-    generateAssignment rule, generateRuleDefinition rule
+    generateAssignment LOCAL_SCOPE_VAR, rule, generateRuleDefinition rule
 
   Terms: (rule) ->
 
@@ -133,10 +133,11 @@ types =
     if rule.items.length is 1
       return generateRule rule.items[0]
 
-    fn =  if _.all(rule.items, (item) -> item.type in composable)
+    fn = if _.all(rule.items, (item) -> item.type in composable)
       '$compose'
     else
       '$concat'
+
     concat [
       fn
       '('
@@ -162,21 +163,18 @@ concat = (values) ->
     ret.concat value
   , []
 
-generateAssignment = (rule, generated) ->
-  scope = switch rule.scope
-    when 'local' then 'l'
-    when 'parent' then '^'
-    else 'g'
-
+generateAssignment = (scope, rule, generated) ->
   concat [
-    "s.assign('#{scope}', '#{rule.name}', "
+    scope
+    ".assign('#{rule.name}', "
     generated
+    if rule.scope? then ", '#{rule.scope}'"
     ')'
   ]
 
 generateRule = (rule, lazy) ->
-  return stringify '' unless rule?
-  return stringify rule if typeof rule is 'string'
+  return '""' unless rule?
+  return JSON.stringify rule if typeof rule is 'string'
   unless types[rule.type]?
     throw new Error 'No transpilation defined for rule type: ' + rule.type
   generated = types[rule.type] rule, lazy
@@ -193,7 +191,9 @@ generateRuleDefinition = (rule) ->
   concat [
     '$rule(function rule__'
     rule.name.replace(/-/g, '_').replace(/\./g, '__')
-    '(s) { \n'
+    '('
+    LOCAL_SCOPE_VAR,
+    ') { \n'
     'return '
     generateRule rule.expr
     ';\n}'
@@ -245,6 +245,3 @@ pushJoin = (join, array) ->
     else
       ret.push item
   ret
-
-stringify = (value) ->
-  "'#{jsStringEscape value}'"

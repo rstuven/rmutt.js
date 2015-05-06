@@ -11,17 +11,19 @@ module.exports =
     constructor: (@parent) ->
       @vars = {}
       if @parent?
+        @root = @parent.root
         @vars[k] = v for k, v of @parent.vars
         @stackDepth = @parent.stackDepth + 1
       else
+        @root = @
         @stackDepth = 1
 
-    assign: (scope, name, value) ->
-      if scope is 'g'
-        $global[name] = value
+    assign: (name, value, scope) ->
+      if scope is 'root'
+        @root.vars[name] = value
       else
         @vars[name] = value
-        if scope is '^' and @parent?
+        if @parent? and scope is 'parent'
           @parent.vars[name] = value
       return
 
@@ -32,26 +34,23 @@ module.exports =
 
       return if $config.maxStackDepth? and @stackDepth >= $config.maxStackDepth
 
-      get = (vars) =>
-        if vars?.hasOwnProperty name
-          ref = vars[name]
-          if typeof ref is 'function'
-            return [true, ref(@, args)]
-          else
-            return [true, ref]
-        [false]
+      get = (scope) =>
+        ref = scope.vars[name]
+        return [false] unless ref?
+        return [true, ref(@, args)] if typeof ref is 'function'
+        return [true, ref]
 
       # local
-      [found, value] = get @vars
+      [found, value] = get @
       return value if found
 
       # parent
       if @parent?
-        [found, value] = get @parent.vars
+        [found, value] = get @parent
         return value if found
 
-      # global
-      [found, value] = get $global
+      # root
+      [found, value] = get @root
       return value if found
 
       # external rule with arguments
@@ -74,7 +73,7 @@ module.exports =
   choice: ->  ->
     index = $choose arguments.length
     value = arguments[index]
-    value?() ? value # lazy rule expansion
+    $unlazy value
 
   ###
   # $choose
@@ -111,34 +110,34 @@ module.exports =
   ###
   # $mapping
   ###
-  mapping: -> (search, replace) ->
+  mapping: -> (search, replacement) ->
     (input) ->
       return unless input?
-      return input unless replace?
+      return input unless replacement?
       input.replace new RegExp(search, 'g'), ->
         args = arguments
-        (replace?() ? replace).replace /\\(\d+)/g, (m, n) -> args[n]
+        $unlazy(replacement).replace /\\(\d+)/g, (m, n) -> args[n]
 
   ###
   # $repeat
   ###
   repeat: -> (value, range) ->
     max = range.min + $choose (range.max - range.min + 1)
-    (value?() ? value for [1 .. max] by 1).join ''
+    ($unlazy value for [1 .. max] by 1).join ''
 
   ###
   # $rule
   ###
   rule: -> (fn, argnames) ->
-    (s, args) ->
-      s = new $Scope s
+    (scope, args) ->
+      scope = new $Scope scope
       if args?
         for arg, i in args
           # positional argument:
-          s.vars['_' + (i+1)] = arg
+          scope.vars['_' + (i+1)] = arg
           # named argument:
-          s.vars[argnames[i]] = arg if argnames?
-      fn s
+          scope.vars[argnames[i]] = arg if argnames?
+      fn scope
 
   ###
   # $transform
@@ -148,3 +147,12 @@ module.exports =
       # console.warn "Transform expression '#{fn?.toString()}' is not a function"
       return expr
     fn expr
+
+  ###
+  # $unlazy
+  ###
+  unlazy: -> (value) ->
+    if typeof value is 'function'
+      value()
+    else
+      value
