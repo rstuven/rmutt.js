@@ -8,7 +8,6 @@ import cap from util;
 top: (cap[s] "\n"){20};
 artp[c]: util.an[art _ c];
 s: clause period | clause period | clause period | si _ clause period | clause period | clause period | clause period | truism period | si _ clause period | clause comma _ cc _ clause period | clause _ sc _ clause period | question;
-
 clause: subj _ pred | subj _ pred | subj _ pred | subj _ pred | subj _ pred | subj _ pred _ time-pp | subj _ pred _ simile | subj _ pred | subj _ went _ to _ place;
 subj: np | np | subj-pn;
 np: bnp | bnp | bnp | bnp | bnp | bnp | bnp | bnp | pn comma _ artp[famous] _ n comma;

@@ -1,3 +1,33 @@
+// This file contains a large English vocabulary, classified by
+// various parts of speech. It is derived from the CUVOALD
+// machine-readable dictionary and so there may be restrictions
+// on commercial use. Because CUVOALD was itself derived from
+// the Oxford Advanced Learner's Dictionary, the spellings and
+// many of the proper names are British.
+//
+// noun_place: a country, city, or other political place name
+// adv: adverb, e.g.,  "ludicrously", "pressingly", "eagerly"
+// adj: adjective, e.g.,  "bituminous", "well-informed", "expeditious"
+// verb_trans_inf: infinitive form of transitive verb, e.g., "tape",
+//   "fetch", "bother"
+// noun_plural: plural form of noun, e.g., "ballrooms", "chews",
+//    "life-preservers"
+// verb_intrans_inf: infinitive form of intransitive verb, e.g., 
+//    "fraternize", "crap", "coexist"
+// noun_name: a person's name, e.g., "Muriel", "Basil", "Gillian"
+// verb_trans_gerund: gerund form of transitive verb, e.g.,
+//    "desalting", "martyring", "test-driving"
+// verb_intrans_gerund: gerund form of intransitive verb, e.g., 
+//    "dilly-dallying"
+// noun_singular: singular form of noun, e.g., "linden-tree",
+//    "cartwheel", "shamrock"
+// verb_trans_past: past tense of transitive verb, e.g., 
+//    "misapprehended", "waterproofed", "suborned"
+// verb_intrans_past: past tense of intransitive verb, e.g., 
+//    "wanked", "panhandled", "hiccupped"
+// verb_past_part: past participle of verb, e.g., 
+//    "partaken", "spun", "withdrawn"
+//
 package eng;
 
 noun_place: "Aachen","Aarhus","Abercarn","Aberdare",
@@ -14443,3 +14473,4 @@ verb_past_part: "backbitten","befallen","begun",
   "sown","spoken","sprung","spun","stridden","sung","sunk",
   "sunken","swollen","swum","thrown","torn","trodden",
   "withdrawn","woken","worn","woven","written";
+
