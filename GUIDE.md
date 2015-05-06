@@ -368,11 +368,12 @@ If you want to save the output to a file you can simply redirect it:
 rmutt myfile.rm > myoutputfile
 ```
 
-If you have a program which generates an rmutt grammar, you can pipe it through rmutt like this:
+If you have a program which generates an rmutt grammar, you can pipe it through rmutt. For example:
 
 ```
-myprogram | rmutt
+echo "night-sky:('.' 5,' ' 100, '*'){100000};" | rmutt
 ```
+(without double quotes in Windows)
 
 Note: rmutt does not require that the names of grammar files end with `.rm` or any other specific extension.
 

@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "description": "generates random text from context-free grammars",
   "main": "index.js",
+  "bin": {
+    "rmutt": "./bin/rmutt"
+  },
   "scripts": {
-    "test": "mocha -R dot --timeout 30000"
+    "test": "mocha -R dot --timeout 10000"
   },
   "repository": "",
   "author": "Ricardo Stuven <rstuven@gmail.com>",
