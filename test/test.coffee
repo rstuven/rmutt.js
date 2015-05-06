@@ -21,23 +21,24 @@ describe 'rmutt', ->
       source = fs.readFileSync examplesDir + file, 'utf8'
       # console.log source
 
-      console.time('compile')
+      # console.log('\n' + file + ':')
+      # console.time('compile')
       compiled = rmutt.compile source,
         workingDir: examplesDir
         header: file
-        cache: true
+        cache: false
         cacheRegenerate: true
-      console.timeEnd('compile')
+      # console.timeEnd('compile')
       # console.log compiled.toString()
 
-      console.time('generate')
+      # console.time('generate')
       output = compiled()
-      console.timeEnd('generate')
+      # console.timeEnd('generate')
 
-      console.log()
-      console.log output
+      # console.log()
+      # console.log output
 
-    # TODO: skipped errors first, then skipped hangs
+    # TODO: skipped errors
     it 'addresses.rm', -> example 'addresses.rm'
     it 'author.rm', -> example 'author.rm'
     it 'bands.rm', -> example 'bands.rm'
@@ -50,19 +51,19 @@ describe 'rmutt', ->
     it 'gramma.rm', -> example 'gramma.rm'
     it 'grammar.rm', -> example 'grammar.rm'
     it.skip 'jcr_sv.rm', -> example 'jcr_sv.rm' # error
-    it.skip 'math.rm', -> example 'math.rm' # hangs
+    it.skip 'math.rm', -> example 'math.rm' # error
     it.skip 'neruda.rm', -> example 'neruda.rm' # error
     it 'numbers.rm', -> example 'numbers.rm'
     it 'password.rm', ->  example 'password.rm'
     it 'password2.rm', -> example 'password2.rm'
     it 'recipe.rm', -> example 'recipe.rm'
-    it.skip 'sentence.rm', -> example 'sentence.rm' # hangs
+    it 'sentence.rm', -> example 'sentence.rm'
     it 'slogan.rm', -> example 'slogan.rm'
     it 'spew.rm', -> example 'spew.rm'
-    it.skip 'spew_xml.rm', -> example 'spew_xml.rm' # hangs
+    it.skip 'spew_xml.rm', -> example 'spew_xml.rm' # error
     it 'story.rm', -> example 'story.rm'
     it.skip 'sva.rm', -> example 'sva.rm' # error
-    it.skip 'tree.rm', -> example 'tree.rm' # hangs
+    it.skip 'tree.rm', -> example 'tree.rm' # error
     it.skip 'turing.rm', -> example 'turing.rm' # error
     it 'url.rm', -> example 'url.rm'
     it 'wine.rm', -> example 'wine.rm'
@@ -116,7 +117,25 @@ describe 'rmutt', ->
 describe 'rmutt', ->
 
   it 'should be fast to parse nested parens', ->
-    source = "a:(((((b)))));"
+    @timeout 100
+    source = "a:(((((((b)))))));"
+    rmutt.compile source
+
+  it 'should be fast to parse this rule (from math.rm)', ->
+    @timeout 300
+    source = """
+      add[a,b]:
+        zupfx[
+         (sum="NaN")
+         (ignore=a>"0"%(^sum=b))
+         (ignore=b>"0"%(^sum=a))
+         (sum>"NaN"%(
+           (l = add_d[lsd[a],lsd[b]])
+           (m=add[zpfx[msds[a]],zpfx[msds[b]]])
+           (ignore=(msds[l] > "1" % ((^m=inc[m]) (^l=l > /1(.)/\\1/))))
+           m l))
+        ];
+    """
     rmutt.compile source
 
   it '_t0', ->
