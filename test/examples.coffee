@@ -30,7 +30,7 @@ describe 'examples', ->
     spew: null
     spew_xml: null
     story: null
-    sva: 'skip' # error
+    sva: null
     tree: null
     turing: null
     url: null
