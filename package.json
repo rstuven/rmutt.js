@@ -7,7 +7,7 @@
     "rmutt": "./bin/rmutt"
   },
   "scripts": {
-    "test": "mocha -R dot --timeout 10000"
+    "test": "mocha -R dot --timeout 30000"
   },
   "repository": "",
   "author": "Ricardo Stuven <rstuven@gmail.com>",

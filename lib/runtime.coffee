@@ -19,61 +19,65 @@ module.exports =
         @stackDepth = 1
 
     assign: (name, value, scope) ->
-      if scope is 'root'
-        @root.vars[name] = value
-      else
-        @vars[name] = value
-        if @parent? and scope is 'parent'
-          @parent.vars[name] = value
-      return
-
-    invokeLazy: (name, args) ->
-      => @invoke name, args
+      => # lazy
+        uvalue = $unlazy value
+        if scope is 'root'
+          @root.vars[name] = uvalue
+        else
+          @vars[name] = uvalue
+          if @parent? and scope is 'parent'
+            @parent.vars[name] = uvalue
+        return
 
     invoke: (name, args) ->
+      =>  # lazy
 
-      return if $config.maxStackDepth? and @stackDepth >= $config.maxStackDepth
+        return if $config.maxStackDepth? and @stackDepth >= $config.maxStackDepth
 
-      get = (scope) =>
-        ref = scope.vars[name]
-        return [false] unless ref?
-        return [true, ref(@, args)] if typeof ref is 'function'
-        return [true, ref]
+        uargs = -> args.map $unlazy if args?
 
-      # local
-      [found, value] = get @
-      return value if found
+        get = (scope) =>
+          ref = scope.vars[name]
+          return [false] unless ref?
+          return [true, $unlazy ref(@, uargs())] if ref.$isRule
+          return [true, ref]
 
-      # parent
-      if @parent?
-        [found, value] = get @parent
+        # local
+        [found, value] = get @
         return value if found
 
-      # root
-      [found, value] = get @root
-      return value if found
+        # parent
+        if @parent?
+          [found, value] = get @parent
+          return value if found
 
-      # external rule with arguments
-      if args? and $config.externals?[name]?
-        return $config.externals[name].apply null, args
+        # root
+        [found, value] = get @root
+        return value if found
 
-      # orphan args :(
-      if args?
-        throw new Error "Missing parameterized rule '#{name}'"
+        # external rule with arguments
+        if args? and $config.externals?[name]?
+          return $config.externals[name].apply null, uargs()
 
-      # external rule (used as transformation, probably)
-      if $config.externals?[name]?
-        return $config.externals[name]
+        # orphan args :(
+        if args?
+          throw new Error "Missing parameterized rule '#{name}'"
 
-      return name
+        # external rule (used as transformation, probably)
+        if $config.externals?[name]?
+          return $config.externals[name]
+
+        return name
 
   ###
   # $choice
   ###
-  choice: ->  ->
-    index = $choose arguments.length
-    value = arguments[index]
-    $unlazy value
+  choice: -> ->
+    args = [].slice.apply arguments
+    -> # lazy
+      index = $choose args.length
+      value = args[index]
+      $unlazy value
 
   ###
   # $choose
@@ -85,51 +89,57 @@ module.exports =
       $config.oracle = Math.floor $config.oracle / terms
     else
       index = Math.floor terms * Math.random()
-
     index
 
   ###
   # $compose
   ###
   compose: -> ->
-    res = (v) -> v
-    [].slice.apply(arguments)
-      .forEach (fn) ->
-        nonClosure = res
-        res = (v) -> fn nonClosure v
-    res
+    args = [].slice.apply arguments
+    -> # lazy
+      res = (v) -> v
+      args
+        .forEach (fn) ->
+          nonClosure = res
+          res = (v) -> ($unlazy fn)(nonClosure(v))
+      res
 
   ###
   # $concat
   ###
   concat: -> ->
-    [].slice.apply(arguments)
-      .filter (x) -> typeof x is 'string'
-      .reduce ((a, b) -> a + b), ''
+    args = [].slice.apply arguments
+    -> # lazy
+      args
+        .map (x) -> $unlazy x
+        .filter (x) -> typeof x is 'string'
+        .reduce ((a, b) -> a + b), ''
 
   ###
   # $mapping
   ###
   mapping: -> (search, replacement) ->
-    (input) ->
-      return unless input?
-      return input unless replacement?
-      input.replace new RegExp(search, 'g'), ->
-        args = arguments
-        $unlazy(replacement).replace /\\(\d+)/g, (m, n) -> args[n]
+    -> # lazy
+      (input) ->
+        return unless input?
+        return input unless replacement?
+        input.replace new RegExp(search, 'g'), ->
+          args = arguments
+          $unlazy(replacement).replace /\\(\d+)/g, (m, n) -> args[n]
 
   ###
   # $repeat
   ###
   repeat: -> (value, range) ->
-    max = range.min + $choose (range.max - range.min + 1)
-    ($unlazy value for [1 .. max] by 1).join ''
+    -> # lazy
+      max = range.min + $choose (range.max - range.min + 1)
+      ($unlazy value for [1 .. max] by 1).join ''
 
   ###
   # $rule
   ###
   rule: -> (fn, argnames) ->
-    (scope, args) ->
+    rule = (scope, args) ->
       scope = new $Scope scope
       if args?
         for arg, i in args
@@ -138,21 +148,26 @@ module.exports =
           # named argument:
           scope.vars[argnames[i]] = arg if argnames?
       fn scope
+    rule.$isRule = true
+    rule
 
   ###
   # $transform
   ###
   transform: -> (expr, fn) ->
-    unless typeof fn is 'function'
-      # console.warn "Transform expression '#{fn?.toString()}' is not a function"
-      return expr
-    fn expr
+    -> # lazy
+      ufn = $unlazy fn
+      uexpr = $unlazy expr
+      unless typeof ufn is 'function'
+        # console.warn "Transform expression '#{fn?.toString()}' is not a function"
+        return uexpr
+      ufn uexpr
 
   ###
   # $unlazy
   ###
   unlazy: -> (value) ->
-    if typeof value is 'function'
+    if typeof value is 'function' and not value.$isRule
       value()
     else
       value

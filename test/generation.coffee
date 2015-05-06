@@ -132,8 +132,9 @@ describe 'generation', ->
 
   it 'repeat with variety', ->
     source = """
-      top: a{2};
+      top: id[a]{2};
       a: "x", "y";
+      id[w]: w;
     """
     expectWithOracle source, [
       'yy'

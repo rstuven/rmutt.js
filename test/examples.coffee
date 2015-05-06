@@ -5,6 +5,8 @@ describe 'examples', ->
 
   examplesDir = __dirname + '/../examples/'
 
+  LOG_OUTPUT = false
+
   config =
     workingDir: examplesDir
     cache: false
@@ -48,7 +50,9 @@ describe 'examples', ->
     source = fs.readFileSync examplesDir + file, 'utf8'
     # console.log source
 
-    # console.log('\n' + file + ':')
+    if LOG_OUTPUT
+      console.log('\n' + file + ':')
+
     # console.time('compile')
     config.header = file
     compiled = rmutt.compile source, config
@@ -59,8 +63,9 @@ describe 'examples', ->
     output = compiled()
     # console.timeEnd('generate')
 
-    # console.log()
-    # console.log output
+    if LOG_OUTPUT
+      console.log()
+      console.log output
 
   Object.keys(examples).forEach (name) ->
     action = examples[name]

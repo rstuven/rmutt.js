@@ -44,15 +44,15 @@ transpile = (rules, config) ->
     return if name is '$entry'
     push.apply result, concat [
       generateAssignment ROOT_SCOPE_VAR, rule, generateRuleDefinition rule
-      ';\n\n'
+      '();\n\n'
     ]
 
   # kick off
   entry = config.entry ? rules.$entry
   if entry?
-    result.push 'return ', ROOT_SCOPE_VAR, ".invoke($config.entry || '#{entry}');\n"
+    result.push 'return ', ROOT_SCOPE_VAR, ".invoke($config.entry || '#{entry}')();\n"
   else
-    result.push 'if ($config.entry != null) return ', ROOT_SCOPE_VAR,'.invoke($config.entry);\n'
+    result.push 'if ($config.entry != null) return ', ROOT_SCOPE_VAR,'.invoke($config.entry)();\n'
 
   # done!
   result.push '};'
@@ -77,10 +77,10 @@ types =
       return "''" if not rule?
       if rule.type is 'Multiplied'
         multiplied = Array rule.multiplier
-        _.fill multiplied, generateRule rule.expr, true
+        _.fill multiplied, generateRule rule.expr
         pushJoin ', ', multiplied
       else
-        generateRule rule, true
+        generateRule rule
 
     concat [
       '$choice('
@@ -88,12 +88,11 @@ types =
       ')'
     ]
 
-  Invocation: (rule, lazy) ->
+  Invocation: (rule) ->
     args = rule.args?
     concat [
       LOCAL_SCOPE_VAR
       '.invoke'
-      if lazy then 'Lazy'
       "('#{rule.name}'"
       if args then ', ['
       if args then generateRules rule.args
@@ -172,20 +171,12 @@ generateAssignment = (scope, rule, generated) ->
     ')'
   ]
 
-generateRule = (rule, lazy) ->
+generateRule = (rule) ->
   return '""' unless rule?
   return JSON.stringify rule if typeof rule is 'string'
   unless types[rule.type]?
     throw new Error 'No transpilation defined for rule type: ' + rule.type
-  generated = types[rule.type] rule, lazy
-  if lazy and rule.type isnt 'Invocation'
-    concat [
-      'function () { return '
-      generated
-      '}'
-    ]
-  else
-    generated
+  types[rule.type] rule
 
 generateRuleDefinition = (rule) ->
   concat [
