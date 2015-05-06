@@ -4,12 +4,12 @@ expect = require('chai').expect
 # TODO: empty grammar test
 # TODO: undefined config test
 
-describe 'generation', ->
+describe.only 'generation', ->
 
-  expectWithOracle = (source, expected) ->
+  expectUsingIteration = (source, expected) ->
     compiled = rmutt.compile source
-    for result, index in expected.reverse()
-      expect(compiled oracle: index)
+    for result, index in expected
+      expect(compiled iteration: index)
         .to.equal result
 
   it 'more than one dash in rule identifier', ->
@@ -21,21 +21,21 @@ describe 'generation', ->
     source = """
       t: "0"|"1"|"2";
     """
-    expectWithOracle source, [
-      '2'
-      '1'
+    expectUsingIteration source, [
       '0'
+      '1'
+      '2'
     ]
 
   it 'empty choice', ->
     source = """
       soldOut: | |  |    "<b>SOLD OUT</b>" | |  |;
     """
-    expectWithOracle source, [
+    expectUsingIteration source, [
+      ''
+      ''
       ''
       '<b>SOLD OUT</b>'
-      ''
-      ''
       ''
     ]
 
@@ -44,22 +44,22 @@ describe 'generation', ->
       t: "0"|a;
       a: "1"|t;
     """
-    expectWithOracle source, [
+    expectUsingIteration source, [
       '0'
-              '0'
-              '1'
-              '0'
+      '1'
+      '0'
           '0'
-              '0'
-              '1'
-              '0'
+      '0'
+      '1'
+      '0'
           '1'
-              '0'
-              '1'
-              '0'
+      '0'
+      '1'
+      '0'
           '0'
-              '0'
-              '1'
+      '0'
+      '1'
+      '0'
               '0'
     ]
 
@@ -83,51 +83,51 @@ describe 'generation', ->
     source = """
       t: "a" ("b"|"c") "d";
     """
-    expectWithOracle source, [
-      'acd'
+    expectUsingIteration source, [
       'abd'
+      'acd'
     ]
 
   it 't4 - nested anonymous rules', ->
     source = """
       t: "a" ("b"|("c"|"d"));
     """
-    expectWithOracle source, [
-      'ad'
+    expectUsingIteration source, [
       'ab'
       'ac'
       'ab'
+      'ad'
     ]
 
   it 't5 - repetition', ->
     source = """
       t: "a"{2} "b"{2,3} "c"? "d"* "e"+;
     """
-    expectWithOracle source, [
-      'aabbbcddddde'
-      'aabbcddddde'
-      'aabbbddddde'
-      'aabbddddde'
-      'aabbbcdddde'
-      'aabbcdddde'
-      'aabbbdddde'
-      'aabbdddde'
-      'aabbbcddde'
-      'aabbcddde'
-      'aabbbddde'
-      'aabbddde'
-      'aabbbcdde'
-      'aabbcdde'
-      'aabbbdde'
-      'aabbdde'
-      'aabbbcde'
-      'aabbcde'
-      'aabbbde'
-      'aabbde'
-      'aabbbce'
-      'aabbce'
-      'aabbbe'
+    expectUsingIteration source, [
       'aabbe'
+      'aabbbe'
+      'aabbce'
+      'aabbbce'
+      'aabbde'
+      'aabbbde'
+      'aabbcde'
+      'aabbbcde'
+      'aabbdde'
+      'aabbbdde'
+      'aabbcdde'
+      'aabbbcdde'
+      'aabbddde'
+      'aabbbddde'
+      'aabbcddde'
+      'aabbbcddde'
+      'aabbdddde'
+      'aabbbdddde'
+      'aabbcdddde'
+      'aabbbcdddde'
+      'aabbddddde'
+      'aabbbddddde'
+      'aabbcddddde'
+      'aabbbcddddde'
     ]
 
   it 'repeat with variety', ->
@@ -136,11 +136,11 @@ describe 'generation', ->
       a: "x", "y";
       id[w]: w;
     """
-    expectWithOracle source, [
-      'yy'
-      'xy'
-      'yx'
+    expectUsingIteration source, [
       'xx'
+      'yx'
+      'xy'
+      'yy'
     ]
 
   it 'repetition in package', ->
@@ -156,9 +156,9 @@ describe 'generation', ->
     source = """
       t: (a: "0" | "1") a;
     """
-    expectWithOracle source, [
-      '1'
+    expectUsingIteration source, [
       '0'
+      '1'
     ]
 
   it 'embedded definitions', ->
@@ -174,22 +174,22 @@ describe 'generation', ->
     """
     compiled = rmutt.compile source
 
-    expect(compiled oracle: 0)
+    expect(compiled iteration: 0)
       .to.equal 'ate patiently with you'
 
-    expect(compiled oracle: 200)
+    expect(compiled iteration: 200)
       .to.equal 'waited patiently for me'
 
-    expect(compiled oracle: 400)
+    expect(compiled iteration: 400)
       .to.equal 'yelled impatiently at you'
 
   it 't7 - variables', ->
     source = """
       t: (a = "0" | "1") a a;
     """
-    expectWithOracle source, [
-      '11'
+    expectUsingIteration source, [
       '00'
+      '11'
     ]
 
   it 'variable', ->
@@ -201,9 +201,9 @@ describe 'generation', ->
       lastName: "McPhee", "Eaton-Hogg", "Worthingham";
       position: "the butler", "the chauffeur";
     """
-    expectWithOracle source, [
-      "the butler said, 'I am the butler, so nice to meet you.'"
+    expectUsingIteration source, [
       "Dr. Nancy McPhee said, 'I am Dr. Nancy McPhee, so nice to meet you.'"
+      "the butler said, 'I am the butler, so nice to meet you.'"
     ]
 
   it 't8 - mappings', ->
@@ -211,16 +211,16 @@ describe 'generation', ->
       a: b > ("0" % "a" "1" % "b");
       b: "0" | "1";
     """
-    expectWithOracle source, [
-      'b'
+    expectUsingIteration source, [
       'a'
+      'b'
     ]
 
   it 't8a - mappings', ->
     source = """
       a: "i like to eat apples and bananas" > "i" % "u";
     """
-    expectWithOracle source, [
+    expectUsingIteration source, [
       'u luke to eat apples and bananas'
     ]
 
@@ -229,7 +229,7 @@ describe 'generation', ->
       a: "i like to eat apples and bananas" > ("i" % u);
       u: "u";
     """
-    expectWithOracle source, [
+    expectUsingIteration source, [
       'u luke to eat apples and bananas'
     ]
 
@@ -246,18 +246,18 @@ describe 'generation', ->
     source = """
       a: ("a"|"b")>("a"%("0"|"zero") "b"%("1"|"one"));
     """
-    expectWithOracle source, [
-      'one'
-      'zero'
-      '1'
+    expectUsingIteration source, [
       '0'
+      '1'
+      'zero'
+      'one'
     ]
 
   it 't9 - regexes', ->
     source = """
       a: "i like to eat apples and bananas" > /[aeiou]+/oo/;
     """
-    expectWithOracle source, [
+    expectUsingIteration source, [
       'oo lookoo too oot oopploos oond boonoonoos'
     ]
 
@@ -265,7 +265,7 @@ describe 'generation', ->
     source = """
       a: "i like to eat apples and bananas" > (/[aeiou]+/oo/ /loo/x/);
     """
-    expectWithOracle source, [
+    expectUsingIteration source, [
       'oo xkoo too oot ooppxs oond boonoonoos'
     ]
 
@@ -273,7 +273,7 @@ describe 'generation', ->
     source = """
       a: "a bad apple" > /a (.+) (.+)/i want the \\2s \\1ly/;
     """
-    expectWithOracle source, [
+    expectUsingIteration source, [
       'i want the apples badly'
     ]
 
@@ -291,11 +291,11 @@ describe 'generation', ->
       slangify: "chck" % "chiggidy" "snp" % "snippidy";
       name: "check" | "chuck" | "snap" | "snipe";
     """
-    expectWithOracle source, [
-      'snppdy'
-      'snppdy'
+    expectUsingIteration source, [
       'chggdy'
       'chggdy'
+      'snppdy'
+      'snppdy'
     ]
 
   it 'transformation 1', ->
@@ -348,11 +348,11 @@ describe 'generation', ->
       s: "hello there " o;
       o: "beautiful" | "Mr. Smarty Pants";
     """
-    expectWithOracle source, [
-      "ogre starts with the letter 'O', Mr. Smarty Pants"
-      "oatmeal starts with the letter 'O', Mr. Smarty Pants"
-      "ogre starts with the letter 'O', beautiful"
+    expectUsingIteration source, [
       "oatmeal starts with the letter 'O', beautiful"
+      "ogre starts with the letter 'O', beautiful"
+      "oatmeal starts with the letter 'O', Mr. Smarty Pants"
+      "ogre starts with the letter 'O', Mr. Smarty Pants"
     ]
 
   describe 'multiplier', ->
@@ -362,11 +362,11 @@ describe 'generation', ->
         package test;
         a: "0" 3| "1";
       """
-      expectWithOracle source, [
+      expectUsingIteration source, [
+        '0'
+        '0'
+        '0'
         '1'
-        '0'
-        '0'
-        '0'
       ]
 
     it 't12b - ignore multiplier outside choice', ->
@@ -382,7 +382,7 @@ describe 'generation', ->
       #include "test/t14b.rm"
       a: b;
     """
-    expect(rmutt.generate source, oracle: 0)
+    expect(rmutt.generate source, iteration: 0)
       .to.equal 'yes!'
 
   describe 'rule arguments', ->
@@ -430,15 +430,15 @@ describe 'generation', ->
         r: ((a="foo") a ($b="bar")) b " "
         ((c:"foo"|"bar") c ($d:"baz"|"quux") d) d "\\n";
       """
-      expectWithOracle source, [
-        'foobar barquuxquux\n'
-        'foobar fooquuxquux\n'
-        'foobar barbazquux\n'
-        'foobar foobazquux\n'
-        'foobar barquuxbaz\n'
-        'foobar fooquuxbaz\n'
-        'foobar barbazbaz\n'
+      expectUsingIteration source, [
         'foobar foobazbaz\n'
+        'foobar barbazbaz\n'
+        'foobar fooquuxbaz\n'
+        'foobar barquuxbaz\n'
+        'foobar foobazquux\n'
+        'foobar barbazquux\n'
+        'foobar fooquuxquux\n'
+        'foobar barquuxquux\n'
       ]
 
     # more examples of parent: math.rm, sva.rm
@@ -494,9 +494,9 @@ describe 'generation', ->
       quux: "snooby " bar;
 
     """
-    expectWithOracle source, [
-      'snooby fnord'
+    expectUsingIteration source, [
       'snooby quux'
+      'snooby fnord'
     ]
 
   it 'multiple import', ->

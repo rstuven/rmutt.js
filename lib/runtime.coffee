@@ -83,10 +83,10 @@ module.exports =
   # $choose
   ###
   choose: -> (terms) ->
-    if $config.oracle?
+    if $config.iteration?
       $config.terms = terms
-      index = $config.oracle % terms
-      $config.oracle = Math.floor $config.oracle / terms
+      index = $config.iteration % terms
+      $config.iteration = Math.floor $config.iteration / terms
     else
       index = Math.floor terms * Math.random()
     index
