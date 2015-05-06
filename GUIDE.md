@@ -377,7 +377,7 @@ echo "night-sky:('.' 5,' ' 100, '*'){100000};" | rmutt
 
 Note: rmutt does not require that the names of grammar files end with `.rm` or any other specific extension.
 
-## Command-line options
+## TODO: Command-line options
 
 * -s [stack depth]: Specify the maximum depth to which rmutt will expand the grammar. This is usually used to prevent recursive grammars from crashing rmutt with stack overflows. Beyond the maximum stack depth, a rule will expand to an empty, zero-length string.
 
