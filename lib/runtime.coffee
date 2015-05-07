@@ -1,12 +1,9 @@
 ###
 # runtime
 ###
-module.exports =
+module.exports = ->
 
-  ###
-  # @class $Scope
-  ###
-  Scope: -> class $Scope
+  class $Scope
 
     constructor: (@parent) ->
       @vars = {}
@@ -18,46 +15,73 @@ module.exports =
         @root = @
         @stackDepth = 1
 
+    rule: (name, argnames, expandible, scope) ->
+      ruleAssignExpand = =>
+        invocation = (parent, args) ->
+          local = new $Scope parent
+          if args?
+            for arg, i in args
+              # positional argument:
+              local.vars['_' + (i+1)] = arg
+              # named argument:
+              local.vars[argnames[i]] = arg if argnames.length > 0
+          expandible local
+        invocation.displayName = name
+        @assignInternal name, invocation, scope
+
     assign: (name, value, scope) ->
-      => # lazy
-        uvalue = $unlazy value
-        if scope is 'root'
-          @root.vars[name] = uvalue
-        else
-          @vars[name] = uvalue
-          if @parent? and scope is 'parent'
-            @parent.vars[name] = uvalue
-        return
+      assignExpand = =>
+        @assignInternal name, $expand(value), scope
+
+    assignInternal: (name, value, scope) ->
+      if scope is 'root'
+        @root.vars[name] = value
+      else
+        @vars[name] = value
+        if @parent? and scope is 'parent'
+          @parent.vars[name] = value
+      return
+
+    invokeRule: (rule, args) ->
+      invoked = rule @, args?.map $expand
+
+      # TODO: https://github.com/RReverser/stack-displayname
+      ruleExpand = -> $expand invoked
+      ruleExpand.displayName = rule.displayName
+
+      try
+        return ruleExpand()
+      catch err
+        # In the meantime...
+        err.message += '\n    at rule ' + rule.displayName
+        throw err
 
     invoke: (name, args) ->
-      =>  # lazy
+      invokeExpand = =>
+        return if @stackDepth >= $options.maxStackDepth
 
-        return if $options.maxStackDepth? and @stackDepth >= $options.maxStackDepth
-
-        uargs = -> args.map $unlazy if args?
-
-        get = (scope) =>
+        tryScope = (scope) =>
           ref = scope.vars[name]
           return [false] unless ref?
-          return [true, $unlazy ref(@, uargs())] if ref.$isRule
+          return [true, @invokeRule(ref, args)] if typeof ref is 'function'
           return [true, ref]
 
         # local
-        [found, value] = get @
+        [found, value] = tryScope @
         return value if found
 
         # parent
         if @parent?
-          [found, value] = get @parent
+          [found, value] = tryScope @parent
           return value if found
 
         # root
-        [found, value] = get @root
+        [found, value] = tryScope @root
         return value if found
 
         # external rule with arguments
         if args? and $options.externals?[name]?
-          return $options.externals[name].apply null, uargs()
+          return $options.externals[name].apply null, args?.map $expand
 
         # orphan args :(
         if args?
@@ -69,20 +93,13 @@ module.exports =
 
         return name
 
-  ###
-  # $choice
-  ###
-  choice: -> ->
-    args = [].slice.apply arguments
-    -> # lazy
+  $choice = (args...) ->
+    $choiceExpand = ->
       index = $choose args.length
       value = args[index]
-      $unlazy value
+      $expand value
 
-  ###
-  # $choose
-  ###
-  choose: -> (terms) ->
+  $choose = (terms) ->
     if $options.iteration?
       index = $options.iteration % terms
       $options.iteration = Math.floor $options.iteration / terms
@@ -90,83 +107,50 @@ module.exports =
       index = Math.floor terms * Math.random()
     index
 
-  ###
-  # $compose
-  ###
-  compose: -> ->
-    args = [].slice.apply arguments
-    -> # lazy
+  $compose = (args...) ->
+    $composeExpand = ->
       res = (v) -> v
       args
         .forEach (fn) ->
           nonClosure = res
-          res = (v) -> ($unlazy fn)(nonClosure(v))
+          res = (v) -> ($expand fn)(nonClosure(v))
       res
 
-  ###
-  # $concat
-  ###
-  concat: -> ->
-    args = [].slice.apply arguments
-    -> # lazy
+  $concat = (args...) ->
+    $concatExpand = ->
       args
-        .map (x) -> $unlazy x
+        .map $expand
         .filter (x) -> typeof x is 'string'
         .reduce ((a, b) -> a + b), ''
 
-  ###
-  # $mapping
-  ###
-  mapping: -> (search, replacement) ->
-    -> # lazy
-      (input) ->
-        return unless input?
-        return input unless replacement?
-        input.replace new RegExp(search, 'g'), ->
-          args = arguments
-          $unlazy(replacement).replace /\\(\d+)/g, (m, n) -> args[n]
-
-  ###
-  # $repeat
-  ###
-  repeat: -> (value, range) ->
-    -> # lazy
-      max = range.min + $choose (range.max - range.min + 1)
-      ($unlazy value for [1 .. max] by 1).join ''
-
-  ###
-  # $rule
-  ###
-  rule: -> (fn, argnames) ->
-    rule = (scope, args) ->
-      scope = new $Scope scope
-      if args?
-        for arg, i in args
-          # positional argument:
-          scope.vars['_' + (i+1)] = arg
-          # named argument:
-          scope.vars[argnames[i]] = arg if argnames?
-      fn scope
-    rule.$isRule = true
-    rule
-
-  ###
-  # $transform
-  ###
-  transform: -> (expr, fn) ->
-    -> # lazy
-      ufn = $unlazy fn
-      uexpr = $unlazy expr
-      unless typeof ufn is 'function'
-        # console.warn "Transform expression '#{fn?.toString()}' is not a function"
-        return uexpr
-      ufn uexpr
-
-  ###
-  # $unlazy
-  ###
-  unlazy: -> (value) ->
-    if typeof value is 'function' and not value.$isRule
+  $expand = (value) ->
+    if typeof value is 'function'
       value()
     else
       value
+
+  $mapping = (search, replacement) ->
+    ->
+      $mappingExpand = (input) ->
+        return unless input?
+        return input unless replacement?
+        return input.replace new RegExp(search, 'g'), ->
+          args = arguments
+          $expand(replacement).replace /\\(\d+)/g, (m, n) -> args[n]
+
+  $repeat = (value, range) ->
+    $repeatExpand = ->
+      max = range.min + $choose (range.max - range.min + 1)
+      ($expand value for [1 .. max] by 1).join ''
+
+  $transform = (input, through) ->
+    $transformExpand = ->
+      inputExpanded = $expand input
+      throughExpanded = $expand through
+      unless typeof throughExpanded is 'function'
+        # console.warn "Transform expression '#{fnExpanded?.toString()}' is not a function"
+        return inputExpanded
+      throughExpanded inputExpanded
+
+
+  return # DO NOT remove this line

@@ -35,15 +35,16 @@ transpile = (rules, options) ->
   result.push '$options = $options || {};\n'
 
   # runtime
-  _.each runtime, (fn, name) ->
-    result.push 'var $', name , ' = (', fn.toString(), ')();\n'
+  result.push 'var slice = Array.prototype.slice;\n'
+  result.push runtime.toString().replace(/^function \(\) {/g, '').replace(/}$/g, '')
+  result.push '\n\n'
 
   # root scope
   result.push 'var ', ROOT_SCOPE_VAR, ' = new $Scope();\n\n'
   _.each rules, (rule, name) ->
     return if name is '$entry'
     push.apply result, concat [
-      generateAssignment ROOT_SCOPE_VAR, rule, generateRuleDefinition rule
+      generateRuleDefinition ROOT_SCOPE_VAR, rule
       '();\n\n'
     ]
 
@@ -124,7 +125,7 @@ types =
     ]
 
   Rule: (rule) ->
-    generateAssignment LOCAL_SCOPE_VAR, rule, generateRuleDefinition rule
+    generateRuleDefinition LOCAL_SCOPE_VAR, rule
 
   Terms: (rule) ->
 
@@ -178,17 +179,19 @@ generateRule = (rule) ->
     throw new Error 'No transpilation defined for rule type: ' + rule.type
   types[rule.type] rule
 
-generateRuleDefinition = (rule) ->
+generateRuleDefinition = (scope, rule) ->
   concat [
-    '$rule(function rule__'
-    rule.name.replace(/-/g, '_').replace(/\./g, '__')
-    '('
+    scope
+    '.rule('
+    JSON.stringify rule.name
+    ', '
+    JSON.stringify(rule.args ? [])
+    ', function ('
     LOCAL_SCOPE_VAR,
-    ') { \n'
-    'return '
+    ') {\nreturn '
     generateRule rule.expr
     ';\n}'
-    if rule.args? then ', ' + JSON.stringify rule.args
+    if rule.scope? then ", '#{rule.scope}'"
     ')'
   ]
 
