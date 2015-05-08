@@ -7,9 +7,9 @@ expect = require('chai').expect
 describe 'generation', ->
 
   expectUsingIteration = (grammar, expected) ->
-    gemerator = rmutt.compile grammar
+    generator = rmutt.compile grammar
     for result, index in expected
-      expect(gemerator iteration: index)
+      expect(generator iteration: index)
         .to.equal result
 
   it 'more than one dash in rule identifier', ->
@@ -172,15 +172,15 @@ describe 'generation', ->
       obj: "you", "me";
       adv: "patiently", "impatiently";
     """
-    gemerator = rmutt.compile grammar
+    generator = rmutt.compile grammar
 
-    expect(gemerator iteration: 0)
+    expect(generator iteration: 0)
       .to.equal 'ate patiently with you'
 
-    expect(gemerator iteration: 200)
+    expect(generator iteration: 200)
       .to.equal 'waited patiently for me'
 
-    expect(gemerator iteration: 400)
+    expect(generator iteration: 400)
       .to.equal 'yelled impatiently at you'
 
   it 't7 - variables', ->
@@ -528,13 +528,13 @@ describe 'generation', ->
         .to.equal 'A';
 
     it 'defined in transpilation', ->
-      gemerator = rmutt.compile @grammar, entry: 'b'
-      expect(gemerator())
+      generator = rmutt.compile @grammar, entry: 'b'
+      expect(generator())
         .to.equal 'B';
 
     it 'override defined in transpilation', ->
-      gemerator = rmutt.compile @grammar, entry: 'b'
-      expect(gemerator(entry: 'c'))
+      generator = rmutt.compile @grammar, entry: 'b'
+      expect(generator(entry: 'c'))
         .to.equal 'C';
 
   describe 'external rules', ->
