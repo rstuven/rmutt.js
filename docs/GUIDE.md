@@ -21,7 +21,7 @@ This tells **rmutt** to produce the string "Thursday" every time it encounters t
 announcement: "I'm leaving on " day;
 ```
 
-it would produce
+would produce
 
 ```
 I'm leaving on Thursday
@@ -128,7 +128,7 @@ There are three shorthand repetition qualifiers that you can use in place of the
 +	{1,5}
 ```
 
-### Embedded definitions
+### Context-dependent behavior: Embedded definitions
 
 In **rmutt**, a rule can change the definition of another rule or define a new rule. This makes certain kinds of context-dependent behavior easier to implement. For instance, suppose you had the following fragmentary English grammar:
 
@@ -176,7 +176,7 @@ The scope of rules defined by embedded definitions is lexical by default. In oth
 
 The scope of an embedded definition can be controlled with the scope qualifier "$". If you place this qualifier in front of the label of an embedded rule, it will modify any existing binding for that label, rather than creating a new local binding. See the Turing machine example for an example of this syntax.
 
-### Variables
+### Context-dependent behavior: Variables
 
 Variables are another way to implement context-dependent behavior. A variable is like an embedded rule whose choices are only made once. Every time the variable is invoked, it will produce the same string. Variable assignments are indicated with an equals sign (=). For instance, the following grammar:
 
@@ -212,6 +212,20 @@ Like embedded definitions, variable assignments are surrounded by square bracket
 The scope of variable assignments is lexical, just like embedded definitions. In fact, a variable assignment is just a degenerate form of rule definition which only allows one choice per rule.
 
 As with embedded definitions, the scope of the assignment can be controlled with the "$" scope qualifier.
+
+### Context-dependent behavior: Indirection
+
+Indirection allows the output of a rule to be used as the name of another rule. This is useful when the ranges of valid choices are influenced by a prior choice. For example, the following script:
+
+``` coffeescript
+start:  sentence-about[animal];
+animal: "dog", "cat";
+sentence-about[subject]: @subject " is a " subject;
+dog: "Fido", "Spot";
+cat: "Tiddles", "Fluffy";
+```
+
+may produce the sentences "Spot is a dog" or "Fluffy is a cat", but will never produce "Spot is a cat". When `sentence-about` is evaluated, subject is set to either "dog" or "cat"; when the first term is evaluated, **rmutt** uses it as the name of a rule and either evaluates the rule named dog or the one named cat.
 
 ### Transformations: Mappings
 
@@ -443,3 +457,5 @@ Curiosities
 
 ---
 > *This guide is mostly based on [the original rmutt documentation](https://web.archive.org/web/20120208110629/http://www.schneertz.com/rmutt/docs.html) by Joe Futrelle.*
+
+> *"Indirection" section is adapted from [The Dada Engine manual](http://dev.null.org/dadaengine/manual-1.0/dada.html) by Andrew C. Bulha.*

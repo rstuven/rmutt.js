@@ -102,6 +102,7 @@ types =
     concat [
       LOCAL_SCOPE_VAR
       '.invoke'
+      if rule.prefix is '@' then 'Indirection'
       "('#{rule.name}'"
       if args then ', ['
       if args then generateRules rule.args, options

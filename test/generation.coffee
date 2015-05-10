@@ -206,6 +206,21 @@ describe 'generation', ->
       "the butler said, 'I am the butler, so nice to meet you.'"
     ]
 
+  it 'indirection', ->
+    grammar = """
+      start:  sentence-about[animal];
+      animal: "dog", "cat";
+      sentence-about[subject]: @subject " is a " subject;
+      dog: "Fido", "Spot";
+      cat: "Tiddles", "Fluffy";
+    """
+    expectUsingIteration grammar, [
+      'Fido is a dog'
+      'Tiddles is a cat'
+      'Spot is a dog'
+      'Fluffy is a cat'
+    ]
+
   it 't8 - mappings', ->
     grammar = """
       a: b > ("0" % "a" "1" % "b");

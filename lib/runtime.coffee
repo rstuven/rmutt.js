@@ -56,6 +56,11 @@ module.exports = ->
         err.message += '\n    at rule ' + rule.displayName
         throw err
 
+    invokeIndirection: (name, args) ->
+      invokeIndirectionExpand = =>
+        value = @invoke(name, args)()
+        @invoke(value, args)()
+
     invoke: (name, args) ->
       invokeExpand = =>
         return if @stackDepth >= $options.maxStackDepth
