@@ -92,7 +92,7 @@ module.exports = ->
         if args?
           throw new Error "Missing parameterized rule '#{name}'"
 
-        # external rule (used as transformation, probably)
+        # external rule (maybe used as variable or transformation)
         if $options.externals?[name]?
           return $options.externals[name]
 

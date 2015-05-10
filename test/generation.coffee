@@ -597,6 +597,17 @@ describe 'generation', ->
       expect(rmutt.generate grammar, options)
         .to.equal '1 + 2 = USD 3'
 
+    it 'used as variable', ->
+      grammar = """
+        top: name;
+      """
+      options =
+        externals:
+          name: 'value'
+
+      expect(rmutt.generate grammar, options)
+        .to.equal 'value'
+
     it 'used as composed transformation', ->
       grammar = """
         top: "abcd" > (asciify["b"] "c"%"x" asciify["d"]);
