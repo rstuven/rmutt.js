@@ -8,25 +8,29 @@ PACKAGE_SEPARATOR = '.'
 grammar = fs.readFileSync __dirname + '/rmutt.pegjs', 'utf8'
 parser = peg.buildParser grammar # TODO: cache
 
-# TODO: async
-
 ###
 # parse
 ###
-module.exports = (source, options) ->
+module.exports = (source, options, callback) ->
+  if callback?
+    options ?= {}
+  else
+    callback = options
+    options = {}
+
   rules = {}
   try
     parse source, rules, options?.workingDir
   catch err
     err.message += "\n    at (#{err.file}:#{err.line}:#{err.column})" if err.line? or err.column?
-    console.error err
-    throw err
+    return callback err
 
   # console.dir rules, depth: 20, colors: true
-  rules
+  callback null, rules
 
 include = (file, rules, dir) ->
   fullpath = path.join (dir ? process.cwd()), file
+  # TODO: async
   source = fs.readFileSync fullpath, 'utf8'
   try
     parse source, rules, path.dirname fullpath

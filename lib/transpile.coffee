@@ -7,20 +7,24 @@ push = Array::push
 ###
 # transpile
 ###
-module.exports = (input, options) ->
-  options ?= {}
-  if typeof input is 'string'
-    rules = parse input, options
+module.exports = (input, options, callback) ->
+  if callback?
+    options ?= {}
   else
-    rules = input
-  result = transpile rules, options
-  # console.log result
-  result
+    callback = options
+    options = {}
+
+  if typeof input is 'string'
+    parse input, options, (err, rules) ->
+      return callback err if err?
+      transpile rules, options, callback
+  else
+    transpile input, options, callback
 
 ROOT_SCOPE_VAR = '$root'
 LOCAL_SCOPE_VAR = '$'
 
-transpile = (rules, options) ->
+transpile = (rules, options, callback) ->
   # console.dir rules, colors: true, depth:10
 
   # detect composable external rules
@@ -36,10 +40,16 @@ transpile = (rules, options) ->
   result.push '// ', options.header, '\n' if options.header?
 
   # exportable
-  result.push 'module.exports = function($options) {\n'
+  result.push 'module.exports = function ($options, callback) {\n'
 
   # fallback
-  result.push '$options = $options || {};\n'
+  result.push """
+    if (callback == null) {
+      callback = $options;
+      $options = {};
+    } else {
+      $options = $options || {};
+    }\n"""
 
   # runtime
   result.push 'var slice = Array.prototype.slice;\n'
@@ -57,19 +67,24 @@ transpile = (rules, options) ->
 
   # kick off
   entry = options.entry ? rules.$entry
+  result.push 'var result;\n'
+  result.push 'try {\n'
   if entry?
-    result.push 'return '
+    result.push 'result = '
     result.push ROOT_SCOPE_VAR
     result.push '.invoke($options.entry || "', entry, '")();\n'
   else
-    result.push 'if ($options.entry != null) return '
+    result.push 'if ($options.entry != null) result = '
     result.push ROOT_SCOPE_VAR
     result.push '.invoke($options.entry)();\n'
+  result.push '} catch (err) { return callback(err); }\n'
+  result.push 'callback(null, result);\n'
 
   # done!
   result.push '};'
 
-  result.join ''
+  # console.log result.join ''
+  callback null, result.join ''
 
 types =
 

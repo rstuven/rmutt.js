@@ -6,32 +6,46 @@ hash = require 'string-hash'
 transpile = require './transpile'
 
 # TODO: stats
-# TODO: async
 
 ###
 # compile
 ###
-module.exports = (source, options) ->
-  cache = options?.cache ? false
+module.exports = (source, options, callback) ->
+  if callback?
+    options ?= {}
+  else
+    callback = options
+    options = {}
+
+  compileTranspiled = (err, transpiled) ->
+    # console.log transpiled
+    return callback err if err?
+    module = {}
+    try
+      compiled = new Function 'module', transpiled
+      compiled module
+    catch err
+      return callback err
+
+    callback null, module.exports
+
+  cache = options.cache ? false
   if cache
-    transpiled = readOrCreateCache source, options
+    readOrCreateCache source, options, compileTranspiled
   else
-    transpiled = transpile source, options
+    transpile source, options, compileTranspiled
 
-  # console.log transpiled
-  compiled = new Function 'module', transpiled
-
-  module = {}
-  compiled module
-  return module.exports
-
-readOrCreateCache = (source, options) ->
+readOrCreateCache = (source, options, callback) ->
   # TODO: include in hash modifications dates of rmutt.pegjs, parse.coffee & transpile.coffee
-  cached = options.cacheFile ? path.join os.tmpdir(), 'rmutt_' + hash source
-  if options.cacheRegenerate isnt true and fs.existsSync cached
-    console.log 'Loading cache: ', cached
-    transpiled = fs.readFileSync cached
-  else
-    transpiled = transpile source, options
-    fs.writeFileSync cached, transpiled
-  transpiled
+  try
+    cached = options.cacheFile ? path.join os.tmpdir(), 'rmutt_' + hash source
+    if options.cacheRegenerate isnt true and fs.existsSync cached
+      console.log 'Loading cache: ', cached
+      fs.readFile cached, callback
+    else
+      transpile source, options, (err, transpiled) ->
+        return callback err if err?
+        fs.writeFile cached, transpiled, (err) ->
+          callback err
+  catch err
+    callback err

@@ -1,34 +1,47 @@
+_ = require 'lodash'
 rmutt = require '..'
-expect = require('chai').expect
+{expect} = require 'chai'
 
 describe 'generation', ->
 
-  expectUsingIteration = (grammar, expected) ->
-    generator = rmutt.compile grammar
-    for result, index in expected
-      expect(generator iteration: index)
-        .to.equal result
+  expectUsingIteration = (grammar, done, expected, options) ->
+    options ?= {}
+    rmutt.compile grammar, options, (err, generator) ->
+      return done err if err?
+      results = []
+      count = 0
+      expected.forEach (value, index) ->
+        iterationOptions = _.clone options
+        iterationOptions.iteration = index
+        generator iterationOptions, (err, result) ->
+          return done err if err?
+          results[index] = result
+          count++
+          if count is expected.length
+            expect(results).to.deep.equal expected
+            done()
 
-  it 'more than one dash in rule identifier', ->
+  it 'more than one dash in rule identifier', (done) ->
     grammar = 'a-b-c:"x";'
-    expect(rmutt.generate grammar)
-      .to.equal 'x'
+    expectUsingIteration grammar, done, [
+      'x'
+    ]
 
-  it 't1 - random selection', ->
+  it 't1 - random selection', (done) ->
     grammar = """
       t: "0"|"1"|"2";
     """
-    expectUsingIteration grammar, [
+    expectUsingIteration grammar, done, [
       '0'
       '1'
       '2'
     ]
 
-  it 'empty choice', ->
+  it 'empty choice', (done) ->
     grammar = """
       soldOut: | |  |    "<b>SOLD OUT</b>" | |  |;
     """
-    expectUsingIteration grammar, [
+    expectUsingIteration grammar, done, [
       ''
       ''
       ''
@@ -36,12 +49,12 @@ describe 'generation', ->
       ''
     ]
 
-  it 't2 - recursion', ->
+  it 't2 - recursion', (done) ->
     grammar = """
       t: "0"|a;
       a: "1"|t;
     """
-    expectUsingIteration grammar, [
+    expectUsingIteration grammar, done, [
       '0'
       '1'
       '0'
@@ -60,47 +73,49 @@ describe 'generation', ->
               '0'
     ]
 
-  it 't2b - circular recursion', ->
+  it 't2b - circular recursion', (done) ->
     grammar = """
       foo: "yes" bar;
       bar: foo;
     """
-    expect(-> rmutt.generate grammar)
-      .to.throw /Maximum call stack size exceeded/
+    rmutt.generate grammar, (err, result) ->
+      expect(err?.message).to.match /Maximum call stack size exceeded/
+      done()
 
-  it 't2c - configurable maximum stack depth', ->
+  it 't2c - configurable maximum stack depth', (done) ->
     grammar = """
       foo: "yes" bar;
       bar: foo;
     """
-    expect(rmutt.generate grammar, maxStackDepth: 20)
-      .to.equal 'yesyesyesyesyesyesyesyesyesyes'
+    expectUsingIteration grammar, done, [
+      'yesyesyesyesyesyesyesyesyesyes'
+    ], maxStackDepth: 20
 
-  it 't3 - anonymous rules', ->
+  it 't3 - anonymous rules', (done) ->
     grammar = """
       t: "a" ("b"|"c") "d";
     """
-    expectUsingIteration grammar, [
+    expectUsingIteration grammar, done, [
       'abd'
       'acd'
     ]
 
-  it 't4 - nested anonymous rules', ->
+  it 't4 - nested anonymous rules', (done) ->
     grammar = """
       t: "a" ("b"|("c"|"d"));
     """
-    expectUsingIteration grammar, [
+    expectUsingIteration grammar, done, [
       'ab'
       'ac'
       'ab'
       'ad'
     ]
 
-  it 't5 - repetition', ->
+  it 't5 - repetition', (done) ->
     grammar = """
       t: "a"{2} "b"{2,3} "c"? "d"* "e"+;
     """
-    expectUsingIteration grammar, [
+    expectUsingIteration grammar, done, [
       'aabbe'
       'aabbbe'
       'aabbce'
@@ -127,38 +142,39 @@ describe 'generation', ->
       'aabbbcddddde'
     ]
 
-  it 'repeat with variety', ->
+  it 'repeat with variety', (done) ->
     grammar = """
       top: id[a]{2};
       a: "x", "y";
       id[w]: w;
     """
-    expectUsingIteration grammar, [
+    expectUsingIteration grammar, done, [
       'xx'
       'yx'
       'xy'
       'yy'
     ]
 
-  it 'repetition in package', ->
+  it 'repetition in package', (done) ->
     grammar = """
       package p;
       top: r{1};
       r: "R";
     """
-    expect(rmutt.generate grammar)
-      .to.equal 'R'
+    expectUsingIteration grammar, done, [
+      'R'
+    ]
 
-  it 't6 - embedded definitions', ->
+  it 't6 - embedded definitions', (done) ->
     grammar = """
       t: (a: "0" | "1") a;
     """
-    expectUsingIteration grammar, [
+    expectUsingIteration grammar, done, [
       '0'
       '1'
     ]
 
-  it 'embedded definitions', ->
+  it 'embedded definitions', (done) ->
     grammar = """
       meta-vp:
       (iv: "ate") (prep: "with") vp,
@@ -169,27 +185,36 @@ describe 'generation', ->
       obj: "you", "me";
       adv: "patiently", "impatiently";
     """
-    generator = rmutt.compile grammar
+    rmutt.compile grammar, (err, generator) ->
+      return done err if err?
 
-    expect(generator iteration: 0)
-      .to.equal 'ate patiently with you'
+      count = 0
+      expected = 3
+      generator iteration: 0, (err, result) ->
+        return done err if err?
+        expect(result).to.equal 'ate patiently with you'
+        done() if ++count is expected
 
-    expect(generator iteration: 200)
-      .to.equal 'waited patiently for me'
+      generator iteration: 200, (err, result) ->
+        return done err if err?
+        expect(result).to.equal 'waited patiently for me'
+        done() if ++count is expected
 
-    expect(generator iteration: 400)
-      .to.equal 'yelled impatiently at you'
+      generator iteration: 400, (err, result) ->
+        return done err if err?
+        expect(result).to.equal 'yelled impatiently at you'
+        done() if ++count is expected
 
-  it 't7 - variables', ->
+  it 't7 - variables', (done) ->
     grammar = """
       t: (a = "0" | "1") a a;
     """
-    expectUsingIteration grammar, [
+    expectUsingIteration grammar, done, [
       '00'
       '11'
     ]
 
-  it 'variable', ->
+  it 'variable', (done) ->
     grammar = """
       s: (character = name, position) character " said, 'I am " character ", so nice to meet you.'";
       name: title " " firstName " " lastName;
@@ -198,12 +223,12 @@ describe 'generation', ->
       lastName: "McPhee", "Eaton-Hogg", "Worthingham";
       position: "the butler", "the chauffeur";
     """
-    expectUsingIteration grammar, [
+    expectUsingIteration grammar, done, [
       "Dr. Nancy McPhee said, 'I am Dr. Nancy McPhee, so nice to meet you.'"
       "the butler said, 'I am the butler, so nice to meet you.'"
     ]
 
-  it 'indirection', ->
+  it 'indirection', (done) ->
     grammar = """
       start:  sentence-about[animal];
       animal: "dog", "cat";
@@ -211,129 +236,134 @@ describe 'generation', ->
       dog: "Fido", "Spot";
       cat: "Tiddles", "Fluffy";
     """
-    expectUsingIteration grammar, [
+    expectUsingIteration grammar, done, [
       'Fido is a dog'
       'Tiddles is a cat'
       'Spot is a dog'
       'Fluffy is a cat'
     ]
 
-  it 't8 - mappings', ->
+  it 't8 - mappings', (done) ->
     grammar = """
       a: b > ("0" % "a" "1" % "b");
       b: "0" | "1";
     """
-    expectUsingIteration grammar, [
+    expectUsingIteration grammar, done, [
       'a'
       'b'
     ]
 
-  it 't8a - mappings', ->
+  it 't8a - mappings', (done) ->
     grammar = """
       a: "i like to eat apples and bananas" > "i" % "u";
     """
-    expectUsingIteration grammar, [
+    expectUsingIteration grammar, done, [
       'u luke to eat apples and bananas'
     ]
 
-  it 't8b - mappings', ->
+  it 't8b - mappings', (done) ->
     grammar = """
       a: "i like to eat apples and bananas" > ("i" % u);
       u: "u";
     """
-    expectUsingIteration grammar, [
+    expectUsingIteration grammar, done, [
       'u luke to eat apples and bananas'
     ]
 
-  it 'mapping in package', ->
+  it 'mapping in package', (done) ->
     grammar = """
       package test;
       top: "xxx" > "x" % a;
       a: "y";
     """
-    expect(rmutt.generate grammar)
-      .to.equal 'yyy'
+    expectUsingIteration grammar, done, [
+      'yyy'
+    ]
 
-  it 't13 - complex mapping syntax', ->
+  it 't13 - complex mapping syntax', (done) ->
     grammar = """
       a: ("a"|"b")>("a"%("0"|"zero") "b"%("1"|"one"));
     """
-    expectUsingIteration grammar, [
+    expectUsingIteration grammar, done, [
       '0'
       '1'
       'zero'
       'one'
     ]
 
-  it 't9 - regexes', ->
+  it 't9 - regexes', (done) ->
     grammar = """
       a: "i like to eat apples and bananas" > /[aeiou]+/oo/;
     """
-    expectUsingIteration grammar, [
+    expectUsingIteration grammar, done, [
       'oo lookoo too oot oopploos oond boonoonoos'
     ]
 
-  it 't9b - regexes', ->
+  it 't9b - regexes', (done) ->
     grammar = """
       a: "i like to eat apples and bananas" > (/[aeiou]+/oo/ /loo/x/);
     """
-    expectUsingIteration grammar, [
+    expectUsingIteration grammar, done, [
       'oo xkoo too oot ooppxs oond boonoonoos'
     ]
 
-  it 't9c - backreferences', ->
+  it 't9c - backreferences', (done) ->
     grammar = """
       a: "a bad apple" > /a (.+) (.+)/i want the \\2s \\1ly/;
     """
-    expectUsingIteration grammar, [
+    expectUsingIteration grammar, done, [
       'i want the apples badly'
     ]
 
-  it 't9 - regexes with /', ->
+  it 't9 - regexes with /', (done) ->
     grammar = """
       a: "a // //// b" > /[\\/]+/-/;
     """
-    expect(rmutt.generate grammar)
-      .to.equal 'a - - b'
+    expectUsingIteration grammar, done, [
+      'a - - b'
+    ]
 
-  it 't10 - transformation chaining', ->
+  it 't10 - transformation chaining', (done) ->
     grammar = """
       thing: name > deleteVowels > slangify > deleteVowels;
       deleteVowels: /[aeiou]//;
       slangify: "chck" % "chiggidy" "snp" % "snippidy";
       name: "check" | "chuck" | "snap" | "snipe";
     """
-    expectUsingIteration grammar, [
+    expectUsingIteration grammar, done, [
       'chggdy'
       'chggdy'
       'snppdy'
       'snppdy'
     ]
 
-  it 'transformation 1', ->
+  it 'transformation 1', (done) ->
     grammar = """
       a: "abc" > ("b" % "x");
     """
-    expect(rmutt.generate grammar)
-      .to.equal 'axc'
+    expectUsingIteration grammar, done, [
+      'axc'
+    ]
 
-  it 'transformation 2', ->
+  it 'transformation 2', (done) ->
     grammar = """
       a: "abc" > b;
       b: "b" % "x";
     """
-    expect(rmutt.generate grammar)
-      .to.equal 'axc'
+    expectUsingIteration grammar, done, [
+      'axc'
+    ]
 
-  it 'transformation 3', ->
+  it 'transformation 3', (done) ->
     grammar = """
       a: "abc" > b;
       b: "b" % "x" "c" % "y";
     """
-    expect(rmutt.generate grammar)
-      .to.equal 'axy'
+    expectUsingIteration grammar, done, [
+      'axy'
+    ]
 
-  it 'packages', ->
+  it 'packages', (done) ->
     grammar = """
       package p1;
 
@@ -345,10 +375,11 @@ describe 'generation', ->
       a: " p2a " b;
       b: "p2b";
     """
-    expect(rmutt.generate grammar)
-      .to.equal "p1b p2a p2b"
+    expectUsingIteration grammar, done, [
+      'p1b p2a p2b'
+    ]
 
-  it 't11 - packages', ->
+  it 't11 - packages', (done) ->
     grammar = """
       package lesson;
 
@@ -360,7 +391,7 @@ describe 'generation', ->
       s: "hello there " o;
       o: "beautiful" | "Mr. Smarty Pants";
     """
-    expectUsingIteration grammar, [
+    expectUsingIteration grammar, done, [
       "oatmeal starts with the letter 'O', beautiful"
       "ogre starts with the letter 'O', beautiful"
       "oatmeal starts with the letter 'O', Mr. Smarty Pants"
@@ -369,80 +400,86 @@ describe 'generation', ->
 
   describe 'multiplier', ->
 
-    it 't12 - probability multipliers', ->
+    it 't12 - probability multipliers', (done) ->
       grammar = """
         package test;
         a: "0" 3| "1";
       """
-      expectUsingIteration grammar, [
+      expectUsingIteration grammar, done, [
         '0'
         '0'
         '0'
         '1'
       ]
 
-    it 't12b - ignore multiplier outside choice', ->
+    it 't12b - ignore multiplier outside choice', (done) ->
       grammar = """
         package test;
         a: "x" "y" "z" 3;
       """
-      expect(rmutt.generate grammar)
-        .to.equal 'xyz'
+      expectUsingIteration grammar, done, [
+        'xyz'
+      ]
 
-  it 't14 - includes', ->
+  it 't14 - includes', (done) ->
     grammar = """
       #include "test/t14b.rm"
       a: b;
     """
-    expect(rmutt.generate grammar, iteration: 0)
-      .to.equal 'yes!'
+    expectUsingIteration grammar, done, [
+      'yes!'
+    ]
 
   describe 'rule arguments', ->
 
-    it 't16 - positional arguments', ->
+    it 't16 - positional arguments', (done) ->
       grammar = """
         foo: (bar["thing","blah","foo"] "ie"){20};
         bar[a,b,c]: "i like " _1 " and " b " and " _3;
       """
-      expect(rmutt.generate grammar)
-        .to.equal 'i like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooie'
+      expectUsingIteration grammar, done, [
+        'i like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooiei like thing and blah and fooie'
+      ]
 
-    it 'terms as argument', ->
+    it 'terms as argument', (done) ->
       grammar = """
         top: a[b c];
         a[x]: x;
       """
-      expect(rmutt.generate grammar)
-        .to.equal 'bc'
+      expectUsingIteration grammar, done, [
+        'bc'
+      ]
 
-    it 'rule invocation as argument', ->
+    it 'rule invocation as argument', (done) ->
       grammar = """
         package test;
         top: a[b["c"]];
         a[p]:p;
         b[p]:p;
       """
-      expect(rmutt.generate grammar)
-        .to.equal 'c'
+      expectUsingIteration grammar, done, [
+        'c'
+      ]
 
-    it 'argument has local precedence in package', ->
+    it 'argument has local precedence in package', (done) ->
       grammar = """
         package test;
         top: a['x'];
         a[p]: p;
         p: 'y';
       """
-      expect(rmutt.generate grammar)
-        .to.equal 'x'
+      expectUsingIteration grammar, done, [
+        'x'
+      ]
 
   describe 'scope', ->
 
-    it 't15 - scope qualifiers', ->
+    it 't15 - scope qualifiers', (done) ->
       grammar = """
         r: ((a="foo") a ($b="bar")) b " "
         ((c:"foo"|"bar") c ($d:"baz"|"quux") d) d "\\n";
       """
-      expectUsingIteration grammar, [
+      expectUsingIteration grammar, done, [
         'foobar foobazbaz\n'
         'foobar barbazbaz\n'
         'foobar fooquuxbaz\n'
@@ -455,7 +492,7 @@ describe 'generation', ->
 
     # more examples of parent: math.rm, sva.rm
     # more examples of root: turing.rm, SecomPR.rm
-    it 't17 - scope qualifiers: parent', ->
+    it 't17 - scope qualifiers: parent', (done) ->
       grammar = """
         tests:
          local.top " "
@@ -487,11 +524,11 @@ describe 'generation', ->
         B: (X="2") C X;
         C: ($X="3") X;
       """
+      expectUsingIteration grammar, done, [
+        '321local.X 2213 331parent.X '
+      ]
 
-      expect(rmutt.generate grammar)
-        .to.equal '321local.X 2213 331parent.X '
-
-  it 't18 - imports', ->
+  it 't18 - imports', (done) ->
     grammar = """
       top: baz.quux;
 
@@ -506,12 +543,12 @@ describe 'generation', ->
       quux: "snooby " bar;
 
     """
-    expectUsingIteration grammar, [
+    expectUsingIteration grammar, done, [
       'snooby quux'
       'snooby fnord'
     ]
 
-  it 'multiple import', ->
+  it 'multiple import', (done) ->
     grammar = """
       package util;
       xuc: /a/ % "A";
@@ -523,8 +560,9 @@ describe 'generation', ->
       import uc, tc from util;
       top: tc["aaa"] " " uc["aaa"];
     """
-    expect(rmutt.generate grammar, entry: 'test.top')
-      .to.equal 'Aaa AAA'
+    expectUsingIteration grammar, done, [
+      'Aaa AAA'
+    ], entry: 'test.top'
 
   describe 'entry rule', ->
 
@@ -535,32 +573,41 @@ describe 'generation', ->
         c:"C";
       """
 
-    it 'first rule by default', ->
-      expect(rmutt.generate @grammar)
-        .to.equal 'A';
+    it 'first rule by default', (done) ->
+      rmutt.generate @grammar, (err, result) ->
+        return done err if err?
+        expect(result).to.equal 'A'
+        done()
 
-    it 'defined in transpilation', ->
-      generator = rmutt.compile @grammar, entry: 'b'
-      expect(generator())
-        .to.equal 'B';
+    it 'defined in transpilation', (done) ->
+      rmutt.compile @grammar, entry: 'b', (err, generator) ->
+        return done err if err?
+        generator (err, result) ->
+          return done err if err?
+          expect(result).to.equal 'B'
+          done()
 
-    it 'override defined in transpilation', ->
-      generator = rmutt.compile @grammar, entry: 'b'
-      expect(generator(entry: 'c'))
-        .to.equal 'C';
+    it 'override defined in transpilation', (done) ->
+      rmutt.compile @grammar, entry: 'b', (err, generator) ->
+        return done err if err?
+        generator entry: 'c', (err, result) ->
+          return done err if err?
+          expect(result).to.equal 'C'
+          done()
 
   describe 'external rules', ->
 
-    it 'handles missing transformation', ->
+    it 'handles missing transformation', (done) ->
       grammar = """
         top: expr " = " (expr > calc);
         expr: "1 + 2";
       """
-      expect(rmutt.generate grammar)
-        .to.equal '1 + 2 = 1 + 2'
-        # .to.throw /'calc' is not a function/
+      expectUsingIteration grammar, done, [
+        '1 + 2 = 1 + 2'
+      ]
+      # .to.throw /'calc' is not a function/
 
-    it 'used as transformation', ->
+    it 'used as transformation', (done) ->
       grammar = """
         top: expr " = " (expr > calc);
         expr: "1 + 2";
@@ -570,18 +617,20 @@ describe 'generation', ->
           calc: (input) ->
             (eval input).toString()
 
-      expect(rmutt.generate grammar, options)
-        .to.equal '1 + 2 = 3'
+      expectUsingIteration grammar, done, [
+        '1 + 2 = 3'
+      ], options
 
-    it 'handles missing parameterized rule', ->
+    it 'handles missing parameterized rule', (done) ->
       grammar = """
         top: expr " = " calc[expr];
         expr: "1 + 2";
       """
-      expect(-> rmutt.generate grammar)
-        .to.throw /Missing parameterized rule/
+      rmutt.generate grammar, (err, result) ->
+        expect(err?.message).to.match /Missing parameterized rule/
+        done()
 
-    it 'used as parameterized rule', ->
+    it 'used as parameterized rule', (done) ->
       grammar = """
         top: expr " = " calc[expr, "USD"];
         expr: "1 + 2";
@@ -591,10 +640,11 @@ describe 'generation', ->
           calc: (input, unit) ->
             unit + ' ' + (eval input).toString()
 
-      expect(rmutt.generate grammar, options)
-        .to.equal '1 + 2 = USD 3'
+      expectUsingIteration grammar, done, [
+        '1 + 2 = USD 3'
+      ], options
 
-    it 'used as variable', ->
+    it 'used as variable', (done) ->
       grammar = """
         top: name;
       """
@@ -602,10 +652,11 @@ describe 'generation', ->
         externals:
           name: 'value'
 
-      expect(rmutt.generate grammar, options)
-        .to.equal 'value'
+      expectUsingIteration grammar, done, [
+        'value'
+      ], options
 
-    it 'used as composed transformation', ->
+    it 'used as composed transformation', (done) ->
       grammar = """
         top: "abcd" > (asciify["b"] "c"%"x" asciify["d"]);
       """
@@ -615,7 +666,8 @@ describe 'generation', ->
             (input) ->
               input.replace(char, char.charCodeAt(0))
 
-      expect(rmutt.generate grammar, options)
-        .to.equal 'a98x100'
+      expectUsingIteration grammar, done, [
+        'a98x100'
+      ], options
 
     # TODO: #include externals.js

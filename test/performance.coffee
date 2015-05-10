@@ -2,14 +2,14 @@ rmutt = require '..'
 
 describe.skip 'performance', ->
 
-  it 'parse nested parens', ->
+  it 'parse nested parens', (done) ->
     @timeout 100
     grammar = """
       a:(((((((b)))))));
     """
-    rmutt.transpile grammar
+    rmutt.transpile grammar, done
 
-  it 'parse this rule from math.rm', ->
+  it 'parse this rule from math.rm', (done) ->
     @timeout 500
     grammar = """
       add[a,b]:
@@ -24,4 +24,4 @@ describe.skip 'performance', ->
            m l))
         ];
     """
-    rmutt.transpile grammar
+    rmutt.transpile grammar, done

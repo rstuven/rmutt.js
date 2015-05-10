@@ -43,7 +43,7 @@ describe 'examples', ->
     wine: null
     xml: null
 
-  example = (name) ->
+  example = (name, done) ->
     fs = require 'fs'
     file  = name + '.rm'
     grammar = fs.readFileSync examplesDir + file, 'utf8'
@@ -54,21 +54,25 @@ describe 'examples', ->
 
     # console.time('compile')
     options.header = file
-    generator = rmutt.compile grammar, options
-    # console.timeEnd('compile')
-    # console.log generator.toString()
+    rmutt.compile grammar, options, (err, generator) ->
+      # console.timeEnd('compile')
+      return done err if err?
+      # console.log generator.toString()
 
-    # console.time('generate')
-    output = generator()
-    # console.timeEnd('generate')
+      # console.time('generate')
+      generator (err, output) ->
+        # console.timeEnd('generate')
+        return done err if err?
 
-    if LOG_OUTPUT
-      console.log()
-      console.log output
+        if LOG_OUTPUT
+          console.log()
+          console.log output
+
+        done()
 
   Object.keys(examples).forEach (name) ->
     action = examples[name]
-    test = -> example name
+    test = (done) -> example name, done
     if action?
       it[action] name, test
     else
