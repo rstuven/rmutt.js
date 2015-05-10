@@ -582,4 +582,17 @@ describe 'generation', ->
       expect(rmutt.generate grammar, options)
         .to.equal '1 + 2 = USD 3'
 
+    it 'used as composed transformation', ->
+      grammar = """
+        top: "abcd" > (asciify["b"] "c"%"x" asciify["d"]);
+      """
+      options =
+        externals:
+          asciify: (char) ->
+            (input) ->
+              input.replace(char, char.charCodeAt(0))
+
+      expect(rmutt.generate grammar, options)
+        .to.equal 'a98x100'
+
     # TODO: #include externals.js

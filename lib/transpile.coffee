@@ -2,7 +2,7 @@ _ = require 'lodash'
 runtime = require './runtime'
 parse = require './parse'
 product = require '../package.json'
-push = Array.prototype.push
+push = Array::push
 
 ###
 # transpile
@@ -22,6 +22,13 @@ LOCAL_SCOPE_VAR = '$'
 
 transpile = (rules, options) ->
   # console.dir rules, colors: true, depth:10
+
+  # detect composable external rules
+  options.composable = []
+  _.each options.externals, (fn, name) ->
+    if fn.toString().indexOf('return function') isnt -1
+      options.composable.push name
+
   result = []
 
   # header
@@ -44,96 +51,102 @@ transpile = (rules, options) ->
   _.each rules, (rule, name) ->
     return if name is '$entry'
     push.apply result, concat [
-      generateRuleDefinition ROOT_SCOPE_VAR, rule
+      generateRuleDefinition ROOT_SCOPE_VAR, rule, options
       '();\n\n'
     ]
 
   # kick off
   entry = options.entry ? rules.$entry
   if entry?
-    result.push 'return ', ROOT_SCOPE_VAR, ".invoke($options.entry || '#{entry}')();\n"
+    result.push 'return '
+    result.push ROOT_SCOPE_VAR
+    result.push '.invoke($options.entry || "', entry, '")();\n'
   else
-    result.push 'if ($options.entry != null) return ', ROOT_SCOPE_VAR,'.invoke($options.entry)();\n'
+    result.push 'if ($options.entry != null) return '
+    result.push ROOT_SCOPE_VAR
+    result.push '.invoke($options.entry)();\n'
 
   # done!
   result.push '};'
 
   result.join ''
 
-# TODO: Study extensibility model for composable externals
-composable = ['Mapping']
-
 types =
 
-  Assignment: (rule) ->
-    generateAssignment LOCAL_SCOPE_VAR, rule, generateRule rule.expr
+  Assignment: (rule, options) ->
+    generateAssignment LOCAL_SCOPE_VAR, rule, generateRule rule.expr, options
 
-  Choice: (rule) ->
+  Choice: (rule, options) ->
 
     # Simplify single choice
     if rule.items.length is 1 and rule.items[0].type isnt 'Multiplied'
-      return generateRule rule.items[0]
+      return generateRule rule.items[0], options
 
-    lazyRules = pushJoin ', ', rule.items.map (rule) ->
+    choices = pushJoin ', ', rule.items.map (rule) ->
       return "''" if not rule?
       if rule.type is 'Multiplied'
         multiplied = Array rule.multiplier
-        _.fill multiplied, generateRule rule.expr
+        _.fill multiplied, generateRule rule.expr, options
         pushJoin ', ', multiplied
       else
-        generateRule rule
+        generateRule rule, options
 
     concat [
       '$choice('
-      lazyRules
+      choices
       ')'
     ]
 
-  Invocation: (rule) ->
+  Invocation: (rule, options) ->
     args = rule.args?
     concat [
       LOCAL_SCOPE_VAR
       '.invoke'
       "('#{rule.name}'"
       if args then ', ['
-      if args then generateRules rule.args
+      if args then generateRules rule.args, options
       if args then ']'
       ')'
     ]
 
-  Multiplied: (rule) ->
+  Multiplied: (rule, options) ->
     # Ignore rule.multiplier (parsed at this level for backward compatibility).
     # See it in action in Choice type.
-    generateRule rule.expr
+    generateRule rule.expr, options
 
-  Mapping: (rule) ->
+  Mapping: (rule, options) ->
     concat [
       '$mapping('
-      generateRule rule.search
+      generateRule rule.search, options
       ', '
-      generateRule rule.replace, true
+      generateRule rule.replace, options
       ')'
     ]
 
-  Repetition: (rule) ->
+  Repetition: (rule, options) ->
     concat [
       '$repeat('
-      generateRule rule.expr, true
+      generateRule rule.expr, options
       ', '
       JSON.stringify rule.range
       ')'
     ]
 
-  Rule: (rule) ->
-    generateRuleDefinition LOCAL_SCOPE_VAR, rule
+  Rule: (rule, options) ->
+    generateRuleDefinition LOCAL_SCOPE_VAR, rule, options
 
-  Terms: (rule) ->
+  Terms: (rule, options) ->
 
     # Simplify single term
     if rule.items.length is 1
-      return generateRule rule.items[0]
+      return generateRule rule.items[0], options
 
-    fn = if _.all(rule.items, (item) -> item.type in composable)
+    isComposable = (item) ->
+      return true if item.type is 'Mapping'
+      return true if item.type is 'Invocation' and item.name in options.composable
+      false
+
+    fn = if _.all(rule.items, isComposable)
       '$compose'
     else
       '$concat'
@@ -141,20 +154,20 @@ types =
     concat [
       fn
       '('
-      generateRules rule.items
+      generateRules rule.items, options
       ')'
     ]
 
-  Transformation: (rule) ->
+  Transformation: (rule, options) ->
     # for transformation chaining, we need to make the tree left-recursive
     if rule.type is 'Transformation' and rule.func.type is 'Transformation'
       rule = makeTreeLeftRecursive rule, 'Transformation', 'expr', 'func'
 
     concat [
       '$transform('
-      generateRule rule.expr
+      generateRule rule.expr, options
       ', '
-      generateRule rule.func
+      generateRule rule.func, options
       ')'
     ]
 
@@ -172,14 +185,14 @@ generateAssignment = (scope, rule, generated) ->
     ')'
   ]
 
-generateRule = (rule) ->
+generateRule = (rule, options) ->
   return '""' unless rule?
   return JSON.stringify rule if typeof rule is 'string'
   unless types[rule.type]?
     throw new Error 'No transpilation defined for rule type: ' + rule.type
-  types[rule.type] rule
+  types[rule.type] rule, options
 
-generateRuleDefinition = (scope, rule) ->
+generateRuleDefinition = (scope, rule, options) ->
   concat [
     scope
     '.rule('
@@ -187,16 +200,16 @@ generateRuleDefinition = (scope, rule) ->
     ', '
     JSON.stringify(rule.args ? [])
     ', function ('
-    LOCAL_SCOPE_VAR,
+    LOCAL_SCOPE_VAR
     ') {\nreturn '
-    generateRule rule.expr
+    generateRule rule.expr, options
     ';\n}'
     if rule.scope? then ", '#{rule.scope}'"
     ')'
   ]
 
-generateRules = (rules) ->
-  pushJoin ', ', rules.map (rule) -> generateRule rule
+generateRules = (rules, options) ->
+  pushJoin ', ', rules.map (rule) -> generateRule rule, options
 
 ###
 Convert a right-recursive tree to a left-recursive tree.
