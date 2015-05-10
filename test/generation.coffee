@@ -1,9 +1,6 @@
 rmutt = require '..'
 expect = require('chai').expect
 
-# TODO: empty grammar test
-# TODO: undefined options test
-
 describe 'generation', ->
 
   expectUsingIteration = (grammar, expected) ->

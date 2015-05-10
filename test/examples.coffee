@@ -12,7 +12,6 @@ describe 'examples', ->
     cache: false
     cacheRegenerate: true
 
-  # TODO: skipped errors
   examples =
     addresses: null
     author: null
