@@ -373,6 +373,36 @@ digit: "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "1";
 
 **rmutt** does not support non-integer weights on choices, because this would make it impossible to enumerate all possible outcomes for a given grammar.
 
+### Embedded code
+
+Blocks of JavaScript code may be embedded in rules. These should return a result.
+
+Rule arguments are available as local variables:
+
+```coffeescript
+top: fn["1","2","3"];
+fn[a, b, c]: {
+  return c + b + a;
+};
+```
+
+It's possible to use anonymous code blocks:
+
+```coffeescript
+top: "1+2=" ({ return 1+2 });
+```
+
+Also, a transformation can be defined using embedded code:
+
+```coffeescript
+top: "abcd" > (asciify["b"] "c"%"x" asciify["d"]);
+asciify[char]: {
+  return function (input) {
+    return input.replace(char, char.charCodeAt(0));
+  };
+};
+```
+
 
 ## Other important things
 
@@ -453,7 +483,7 @@ Curiosities
 
 ### Turing-complete
 
-**rmutt** is Turing-complete. [Here](../examples/turing.rm) is an implementation of a Turing machine in **rmutt**.
+Even without using embedded or external JavaScript code, **rmutt** is Turing-complete. [Here](../examples/turing.rm) is an implementation of a Turing machine in **rmutt**.
 
 ---
 > *This guide is mostly based on [the original rmutt documentation](https://web.archive.org/web/20120208110629/http://www.schneertz.com/rmutt/docs.html) by Joe Futrelle.*

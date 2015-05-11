@@ -19,6 +19,7 @@ module.exports = ->
       ruleAssignExpand = =>
         invocation = (parent, args) ->
           local = new $Scope parent
+          local.package = name.split('.')[0] if name.indexOf('.') isnt -1
           if args?
             for arg, i in args
               # positional argument:
@@ -41,6 +42,20 @@ module.exports = ->
         if @parent? and scope is 'parent'
           @parent.vars[name] = value
       return
+
+    CodeBlock = (args, code) ->
+      Function.apply @, args.concat(code)
+
+    evaluate: (code) ->
+      evaluateExpand = =>
+        args = Object.keys @vars
+        values = args.map (v) => @vars[v]
+        if @package?
+          args = args.map (v) => v.replace @package + '.', ''
+        fn = new CodeBlock args, code
+        result = fn.apply null, values
+        return result if typeof result is 'function'
+        (result ? '').toString()
 
     invokeRule: (rule, args) ->
       invoked = rule @, args?.map $expand

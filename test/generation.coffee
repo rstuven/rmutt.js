@@ -595,6 +595,101 @@ describe 'generation', ->
           expect(result).to.equal 'C'
           done()
 
+  describe 'code block', ->
+
+    it 'evaluates rule arguments as local variables', (done) ->
+      grammar = """
+        top: fn["1","2","3"];
+        fn[a, b, c]: {
+          return c + b + a;
+        };
+      """
+      expectUsingIteration grammar, done, [
+        '321'
+      ]
+
+    it 'evaluates anonymous expression', (done) ->
+      grammar = """
+        top: "1+2=" ({ return 1+2 });
+      """
+      expectUsingIteration grammar, done, [
+        '1+2=3'
+      ]
+
+    it 'evaluates undefined as empty string', (done) ->
+      grammar = """
+        top: { return };
+      """
+      expectUsingIteration grammar, done, [
+        ''
+      ]
+
+    it 'evaluates null as empty string', (done) ->
+      grammar = """
+        top: { return null };
+      """
+      expectUsingIteration grammar, done, [
+        ''
+      ]
+
+    it 'evaluates expression in package', (done) ->
+      grammar = """
+        package test;
+        top: fn["1", "2", "3"];
+        fn[a, b, c]: {
+          return c + b + a;
+        };
+      """
+      expectUsingIteration grammar, done, [
+        '321'
+      ]
+
+    it 'evaluates expression with curly brackets', (done) ->
+      grammar = """
+        top: fn["x" | "y" | "z"];
+        fn[k]: {
+          var map = {
+            x: 1,
+            y: 2,
+            z: 3
+          };
+          return map[k];
+        };
+      """
+      expectUsingIteration grammar, done, [
+        '1'
+        '2'
+        '3'
+      ]
+
+    it 'evaluates named rule as transformation', (done) ->
+      grammar = """
+        top: "abcd" > (asciify["b"] "c"%"x" asciify["d"]);
+        asciify[char]: {
+          return function (input) {
+            return input.replace(char, char.charCodeAt(0));
+          };
+        };
+      """
+      expectUsingIteration grammar, done, [
+        'a98x100'
+      ]
+
+    it 'evaluates anonymous rule as transformation', (done) ->
+      grammar = """
+        top: "abcd" > (
+          "c"%"x"
+          ({
+            return function (input) {
+              return input.toUpperCase();
+            };
+          })
+        );
+      """
+      expectUsingIteration grammar, done, [
+        'ABXD'
+      ]
+
   describe 'external rules', ->
 
     it 'handles missing transformation', (done) ->

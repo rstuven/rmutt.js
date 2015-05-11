@@ -24,13 +24,20 @@ module.exports = (input, options, callback) ->
 ROOT_SCOPE_VAR = '$root'
 LOCAL_SCOPE_VAR = '$'
 
+isTransformation = (code) ->
+  # just a good guess...
+  code.indexOf('return function') isnt -1
+
 transpile = (rules, options, callback) ->
   # console.dir rules, colors: true, depth:10
 
   # detect composable external rules
   options.composable = []
   _.each options.externals, (fn, name) ->
-    if fn.toString().indexOf('return function') isnt -1
+    if isTransformation fn.toString()
+      options.composable.push name
+  _.each rules, (rule, name) ->
+    if rule.expr?.type is 'CodeBlock' and isTransformation rule.expr.code
       options.composable.push name
 
   result = []
@@ -112,6 +119,14 @@ types =
       ')'
     ]
 
+  CodeBlock: (rule, options) ->
+    concat [
+      LOCAL_SCOPE_VAR
+      '.evaluate('
+      JSON.stringify rule.code
+      ')'
+    ]
+
   Invocation: (rule, options) ->
     args = rule.args?
     concat [
@@ -159,6 +174,7 @@ types =
 
     isComposable = (item) ->
       return true if item.type is 'Mapping'
+      return true if item.type is 'CodeBlock' and isTransformation item.code
       return true if item.type is 'Invocation' and item.name in options.composable
       false
 
