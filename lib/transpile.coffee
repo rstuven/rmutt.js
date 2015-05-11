@@ -1,5 +1,6 @@
 _ = require 'lodash'
 runtime = require './runtime'
+random = require './random.js'
 parse = require './parse'
 product = require '../package.json'
 push = Array::push
@@ -38,6 +39,7 @@ transpile = (rules, options, callback) ->
       'Header'
       'ModuleBegin'
       'GeneralRuntime'
+      'RandomRuntime'
       'RulesDefinitions'
       'EntryInvocation'
       'ModuleEnd'
@@ -95,6 +97,35 @@ sections =
       'var slice = Array.prototype.slice;\n'
       runtime.toString().replace(/^function \(\) {/g, '').replace(/}$/g, '')
       '\n\n'
+    ]
+
+  RandomRuntime: (rules, options) ->
+    options.randomSeedType ?= 'integer'
+    concat [
+      'var $Random = (', random.toString(), ')();\n'
+      """
+      $options.randomSeed = (function(seed){
+        if (typeof seed == "number") return seed;
+        if (seed instanceof Array) return seed;
+        if ($options.randomSeedType == null) {
+          $options.randomSeedType = #{JSON.stringify options.randomSeedType};
+        }
+        if ($options.randomSeedType == "array") {
+          return $Random.generateEntropyArray();
+        } else {
+          return (Math.random() * 0x100000000) | 0;
+        }
+      })($options.randomSeed);
+
+      var $random = (function(seed){
+        var engine = $Random.engines.mt19937();
+        if (seed instanceof Array) {
+          return new $Random(engine.seedWithArray(seed));
+        } else {
+          return new $Random(engine.seed(seed));
+        }
+      })($options.randomSeed);
+      """
     ]
 
   RulesDefinitions: (rules, options) ->

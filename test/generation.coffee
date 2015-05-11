@@ -27,7 +27,7 @@ describe 'generation', ->
       'x'
     ]
 
-  it 't1 - random selection', (done) ->
+  it 'choice selection', (done) ->
     grammar = """
       t: "0"|"1"|"2";
     """
@@ -36,6 +36,36 @@ describe 'generation', ->
       '1'
       '2'
     ]
+
+  it 'generates random seed (number by default)', (done) ->
+    grammar = """
+      t: "0"|"1"|"2";
+    """
+    rmutt.generate grammar, (err, result) ->
+      return done err if err?
+      expect(result.options.randomSeedType).to.equal 'integer'
+      expect(result.options.randomSeed).to.be.a 'number'
+      done()
+
+  it 'uses random seed', (done) ->
+    grammar = """
+      t: "0"|"1"|"2";
+    """
+    rmutt.generate grammar, randomSeed: 12345, (err, result) ->
+      return done err if err?
+      expect(result.options.randomSeed).to.equal 12345
+      done()
+
+  it 'generates array random seed', (done) ->
+    grammar = """
+      t: "0"|"1"|"2";
+    """
+    rmutt.generate grammar, randomSeedType: 'array', (err, result) ->
+      return done err if err?
+      expect(result.options.randomSeedType).to.equal 'array'
+      expect(result.options.randomSeed).to.be.instanceof Array
+      expect(result.options.randomSeed).to.have.length 16
+      done()
 
   it 'empty choice', (done) ->
     grammar = """

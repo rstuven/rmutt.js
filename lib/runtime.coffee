@@ -124,7 +124,7 @@ module.exports = ->
       index = $options.iteration % terms
       $options.iteration = Math.floor $options.iteration / terms
     else
-      index = Math.floor terms * Math.random()
+      index = $random.integer 0, terms - 1
     index
 
   $compose = (args...) ->
