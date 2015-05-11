@@ -111,6 +111,10 @@ module.exports = ->
         if $options.externals?[name]?
           return $options.externals[name]
 
+        # $options virtual package
+        if name.indexOf('$options.') is 0
+          return ($options[name.split('.')[1]] ? '').toString()
+
         return name
 
   $choice = (args...) ->

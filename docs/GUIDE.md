@@ -411,6 +411,19 @@ asciify[char]: {
 
 By default, **rmutt** invokes the first rule in its input. Think of this as the "entry point" for your grammar. This is configurable from the [CLI](CLI.md) and the [API](API.md).
 
+### $options package
+
+This is a virtual package that gives access to the current options object.
+This can be useful, for example, to render a permament link to the generated document
+passing the seed value of the random number generator.
+
+```coffeescript
+#include "recipe.rm"
+
+top: RECIPE permanent_link;
+permanent_link: "<p><a href=\"http://randomrecipes.com/?seed=" $options.randomSeed "\">Permanent link</a></p>";
+```
+
 ### Line breaks
 
 * All top-level rules and package statements must end in a semicolon (`;`).

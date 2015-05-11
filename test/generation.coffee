@@ -39,12 +39,13 @@ describe 'generation', ->
 
   it 'generates random seed (number by default)', (done) ->
     grammar = """
-      t: "0"|"1"|"2";
+      t: $options.randomSeed;
     """
     rmutt.generate grammar, (err, result) ->
       return done err if err?
       expect(result.options.randomSeedType).to.equal 'integer'
       expect(result.options.randomSeed).to.be.a 'number'
+      expect(result.options.randomSeed).to.equal +(result.generated)
       done()
 
   it 'uses random seed', (done) ->

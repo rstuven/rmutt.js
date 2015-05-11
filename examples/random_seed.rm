@@ -1,0 +1,11 @@
+#include "recipe.rm"
+
+top: RECIPE permanent_link;
+
+permanent_link:
+  "<p><a href=\"http://randomrecipes.com/?seed="
+  $options.randomSeed
+  "\">Permanent link</a></p>";
+
+// The $options.randomSeed variable has the seed value of the random number generator.
+// In this example, we implement a "permanent link" to generate the same recipe using the randomSeed option.

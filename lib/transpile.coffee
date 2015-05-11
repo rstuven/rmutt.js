@@ -140,14 +140,14 @@ sections =
     result
 
   EntryInvocation: (rules, options) ->
-    entry = options.entry ? rules.$entry
+    options.entry ?= rules.$entry
     concat [
       'var result;\n'
       'try {\n'
-      if entry? then concat [
+      if options.entry? then concat [
         'result = '
         ROOT_SCOPE_VAR
-        '.invoke($options.entry || "', entry, '")();\n'
+        '.invoke($options.entry || "', options.entry, '")();\n'
       ]
       else concat [
         'if ($options.entry != null) result = '
