@@ -19,9 +19,9 @@ module.exports =
 
     if typeof source is 'string'
       # source is a grammar
-      compile source, options, (err, compiled) ->
+      compile source, options, (err, result) ->
         return callback err if err?
-        compiled options, callback
+        result.compiled result.options, callback
     else if typeof source is 'function'
       # source is a generator
       source options, callback

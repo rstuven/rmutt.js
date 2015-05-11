@@ -17,20 +17,24 @@ module.exports = (source, options, callback) ->
     callback = options
     options = {}
 
-  compileTranspiled = (err, transpiled) ->
+  options = _.clone options
+
+  compileTranspiled = (err, result) ->
     # console.log transpiled
     return callback err if err?
     module = {}
     try
-      compiled = new Function 'module', transpiled
+      compiled = new Function 'module', result.transpiled
       compiled module
     catch err
       return callback err
 
-    callback null, module.exports
+    callback null,
+      compiled: module.exports
+      options: result.options
 
-  cache = options.cache ? false
-  if cache
+  options.cache ?= false
+  if options.cache
     readOrCreateCache source, options, compileTranspiled
   else
     transpile source, options, compileTranspiled
@@ -38,14 +42,15 @@ module.exports = (source, options, callback) ->
 readOrCreateCache = (source, options, callback) ->
   # TODO: include in hash modifications dates of rmutt.pegjs, parse.coffee & transpile.coffee
   try
-    cached = options.cacheFile ? path.join os.tmpdir(), 'rmutt_' + hash source
-    if options.cacheRegenerate isnt true and fs.existsSync cached
-      console.log 'Loading cache: ', cached
-      fs.readFile cached, callback
+    options.cacheFile ?= path.join os.tmpdir(), 'rmutt_' + hash source
+    if options.cacheRegenerate isnt true and fs.existsSync options.cacheFile
+      console.log 'Loading cache: ', options.cacheFile
+      fs.readFile options.cacheFile, callback
     else
-      transpile source, options, (err, transpiled) ->
+      transpile source, options, (err, result) ->
         return callback err if err?
-        fs.writeFile cached, transpiled, (err) ->
-          callback err
+        fs.writeFile options.cacheFile, result.transpiled, (err) ->
+          return callback err if err?
+          callback null, result.transpiled
   catch err
     callback err

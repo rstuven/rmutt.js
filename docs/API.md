@@ -27,7 +27,14 @@ As internally some methods are reused by others, options of the former also appl
 ## generator([options, ]callback)
 Generates a (usually random) instance of the string specified by the source [grammar](GUIDE.md). This function is created by [`rmutt.compile`](#compile) or returned by a `require` from transpiled code (see [`rmutt.transpile`](#transpile)).
 
-### Options
+### callback
+A function with the following arguments:
+* **error** (Error)
+* **result** (object): An object with the following properties:
+  * **options** (object): The options used (some may have changed during execution).
+  * **generated** (string): The generated text.
+
+### options
 
 <a name="generator-options-entry" />
 * **entry** (string):
@@ -57,8 +64,8 @@ rmutt.generate(grammar, {
       return eval(input).toString(); // sorry, the Evil Eval got a part in this story
     }
   }
-}, function (err, output) {
-  // output = "1 + 2 = 3"
+}, function (err, result) {
+  // result.generated = "1 + 2 = 3"
 });
 ```
 
@@ -75,8 +82,8 @@ rmutt.generate(grammar, {
       return unit + ' ' + eval(input).toString();
     }
   }
-}, function (err, output) {
-  // output = "1 + 2 = USD 3"
+}, function (err, result) {
+  // result.generated = "1 + 2 = USD 3"
 });
 ```
 
@@ -89,7 +96,8 @@ Specifies the maximum depth to which **rmutt** will expand the grammar. This is 
 ### Example
 
 ``` javascript
-rmutt.compile(grammar, function (err, generator) {
+rmutt.compile(grammar, function (err, result) {
+  var generator = result.compiled;
 });
 ```
 Or...
@@ -98,8 +106,8 @@ var generator = require('path/to/transpiled/file');
 ```
 Then
 ``` javascript
-generator(function (err, output) {
-  console.log(output);
+generator(function (err, result) {
+  console.log(result.generated);
 });
 ```
 
@@ -107,7 +115,14 @@ generator(function (err, output) {
 ## rmutt.compile(grammar[, options], callback)
 Creates a [`generator`](#generator) function.
 
-### Options
+### callback
+A function with the following arguments:
+* **error** (Error)
+* **result** (object): An object with the following properties:
+  * **options** (object): The options used (some may have changed during execution).
+  * **compiled** (Function): The [`generator`](#generator) function.
+
+### options
 
 * **cache** (boolean):
 Loads or creates a cached transpiled code file.
@@ -121,20 +136,27 @@ Always create the transpiled file.
 ### Example
 
 ``` javascript
-rmutt.compile(grammar, {entry: 'entry-rule'}, function (err, generator) {
-  generator(function (err, output1) {
+rmutt.compile(grammar, {entry: 'entry-rule'}, function (err, result) {
+  result.compiled(function (err, result1) {
   });
-  generator(function (err, output2) {
-    // depending on the chances, output2 is different than output1
+  result.compiled(function (err, result2) {
+    // depending on the chances, result2.generated is different than result1.generated
   });
 });
 ```
 
 <a name="transpile" />
 ## rmutt.transpile(grammar[, options], callback)
-Returns a string containing JavaScript code that can be saved in a file and later loaded using `require` to obtain a [`generator`](#generator) function.
+Generates a string containing JavaScript code that can be saved in a file and later loaded using `require` to obtain a [`generator`](#generator) function.
 
-### Options
+### callback
+A function with the following arguments:
+* **error** (Error)
+* **result** (object): An object with the following properties:
+  * **options** (object): The options used (some may have changed during execution).
+  * **transpiled** (string): The generated JavaScript code.
+
+### options
 
 <a name="transpile-options-entry" />
 * **entry** (string):
@@ -153,7 +175,7 @@ Convenience function. Calls [`rmutt.transpile`](#transpile), [`rmutt.compile`](#
 ### Example
 
 ``` javascript
-rmutt.generate("top: a,b,c,d;", function (err, output) {
-  console.log(output);
+rmutt.generate("top: a,b,c,d;", function (err, result) {
+  console.log(result.generated);
 });
 ```

@@ -6,16 +6,16 @@ describe 'generation', ->
 
   expectUsingIteration = (grammar, done, expected, options) ->
     options ?= {}
-    rmutt.compile grammar, options, (err, generator) ->
+    rmutt.compile grammar, options, (err, result) ->
       return done err if err?
       results = []
       count = 0
       expected.forEach (value, index) ->
         iterationOptions = _.clone options
         iterationOptions.iteration = index
-        generator iterationOptions, (err, result) ->
+        result.compiled iterationOptions, (err, result) ->
           return done err if err?
-          results[index] = result
+          results[index] = result.generated
           count++
           if count is expected.length
             expect(results).to.deep.equal expected
@@ -185,24 +185,25 @@ describe 'generation', ->
       obj: "you", "me";
       adv: "patiently", "impatiently";
     """
-    rmutt.compile grammar, (err, generator) ->
+    rmutt.compile grammar, (err, result) ->
       return done err if err?
 
       count = 0
       expected = 3
-      generator iteration: 0, (err, result) ->
+
+      result.compiled iteration: 0, (err, result) ->
         return done err if err?
-        expect(result).to.equal 'ate patiently with you'
+        expect(result.generated).to.equal 'ate patiently with you'
         done() if ++count is expected
 
-      generator iteration: 200, (err, result) ->
+      result.compiled iteration: 200, (err, result) ->
         return done err if err?
-        expect(result).to.equal 'waited patiently for me'
+        expect(result.generated).to.equal 'waited patiently for me'
         done() if ++count is expected
 
-      generator iteration: 400, (err, result) ->
+      result.compiled iteration: 400, (err, result) ->
         return done err if err?
-        expect(result).to.equal 'yelled impatiently at you'
+        expect(result.generated).to.equal 'yelled impatiently at you'
         done() if ++count is expected
 
   it 't7 - variables', (done) ->
@@ -576,23 +577,23 @@ describe 'generation', ->
     it 'first rule by default', (done) ->
       rmutt.generate @grammar, (err, result) ->
         return done err if err?
-        expect(result).to.equal 'A'
+        expect(result.generated).to.equal 'A'
         done()
 
     it 'defined in transpilation', (done) ->
-      rmutt.compile @grammar, entry: 'b', (err, generator) ->
+      rmutt.compile @grammar, entry: 'b', (err, result) ->
         return done err if err?
-        generator (err, result) ->
+        result.compiled (err, result) ->
           return done err if err?
-          expect(result).to.equal 'B'
+          expect(result.generated).to.equal 'B'
           done()
 
     it 'override defined in transpilation', (done) ->
-      rmutt.compile @grammar, entry: 'b', (err, generator) ->
+      rmutt.compile @grammar, entry: 'b', (err, result) ->
         return done err if err?
-        generator entry: 'c', (err, result) ->
+        result.compiled entry: 'c', (err, result) ->
           return done err if err?
-          expect(result).to.equal 'C'
+          expect(result.generated).to.equal 'C'
           done()
 
   describe 'code block', ->

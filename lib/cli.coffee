@@ -3,8 +3,9 @@ path = require 'path'
 rmutt = require '..'
 
 generate = (source) ->
-  output = rmutt.generate source, header: file
-  process.stdout.write output
+  rmutt.generate source, header: file, (err, result) ->
+    return process.stderr.write err.stack if err?
+    process.stdout.write result.generated
 
 readStream = (stream) ->
   source = ''

@@ -54,19 +54,21 @@ describe 'examples', ->
 
     # console.time('compile')
     options.header = file
-    rmutt.compile grammar, options, (err, generator) ->
+    rmutt.compile grammar, options, (err, result) ->
       # console.timeEnd('compile')
       return done err if err?
-      # console.log generator.toString()
+      # console.log result.compiled.toString()
 
       # console.time('generate')
-      generator (err, output) ->
+      result.compiled (err, result) ->
         # console.timeEnd('generate')
         return done err if err?
 
         if LOG_OUTPUT
           console.log()
-          console.log output
+          console.log result.generated
+          console.log()
+          console.log result.options
 
         done()
 

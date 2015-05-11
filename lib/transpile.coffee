@@ -47,7 +47,9 @@ transpile = (rules, options, callback) ->
     return callback err
 
   # console.log result.join ''
-  callback null, result.join ''
+  callback null,
+    transpiled: result.join ''
+    options: options
 
 detectComposableRules = (rules, options) ->
   result = []
@@ -74,7 +76,13 @@ sections =
         callback = $options;
         $options = {};
       } else {
-        $options = $options || {};
+        $options = (function(source){
+          var target = {};
+          for (var key in source) {
+            target[key] = source[key];
+          }
+          return target;
+        })($options || {});
       }
     \n
     """
@@ -116,7 +124,8 @@ sections =
         '.invoke($options.entry)();\n'
       ]
       '} catch (err) { return callback(err); }\n'
-      'callback(null, result);\n'
+      '\n'
+      'callback(null, { generated: result, options: $options });\n'
     ]
 
 types =
