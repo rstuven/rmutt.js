@@ -8,6 +8,7 @@
 which in turn is modeled after Andrew C. Bulhak's late, great
 [Dada Engine](http://dev.null.org/dadaengine/) which he used
 to write the hilarious [Postmodernism Generator](https://en.wikipedia.org/wiki/Postmodernism_Generator).
+**rmutt.js** grammar is backward compatible with the original **rmutt**, but adds features inspired by Dada Engine such as [indirection](./GUIDE.md#indirection) and JavaScript platform capabilities, like [embedded code](./GUIDE.md#embedded-code) and [external rules](./API.md#generator-options-externals).
 
 The original **rmutt** was named after Marcel Duchamp's alter-ego Richard Mutt, who is responsible for the "urinal" ready-made, an infamous dadaist art prank. **rmutt** is not to be confused with the UNIX mail-reader [mutt](http://www.mutt.org/).
 

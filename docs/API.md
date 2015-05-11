@@ -34,6 +34,7 @@ Generates a (usually random) instance of the string specified by the source [gra
 In order to produce a string, **rmutt** must start with one of the rules in the grammar. By default, **rmutt** expands the first rule it finds in the grammar, but you can use this option to specify another one. This option overrides the [`entry` option](#transpile-options-entry) passed to
 [`rmutt.transpile`](#transpile) or [`rmutt.compile`](#compile).
 
+<a name="generator-options-externals" />
 * **externals** (object):
 Most of the time, the expressive generative power of **rmutt** is enough.
 But sometimes, implementing a complex rule in pure **rmutt**

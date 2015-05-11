@@ -213,6 +213,7 @@ The scope of variable assignments is lexical, just like embedded definitions. In
 
 As with embedded definitions, the scope of the assignment can be controlled with the "$" scope qualifier.
 
+<a name="indirection" />
 ### Context-dependent behavior: Indirection
 
 Indirection allows the output of a rule to be used as the name of another rule. This is useful when the ranges of valid choices are influenced by a prior choice. For example, the following script:
@@ -488,4 +489,4 @@ Even without using embedded or external JavaScript code, **rmutt** is Turing-com
 ---
 > *This guide is mostly based on [the original rmutt documentation](https://web.archive.org/web/20120208110629/http://www.schneertz.com/rmutt/docs.html) by Joe Futrelle.*
 
-> *"Indirection" section is adapted from [The Dada Engine manual](http://dev.null.org/dadaengine/manual-1.0/dada.html) by Andrew C. Bulha.*
+> *"Indirection" section is adapted from [The Dada Engine manual](http://dev.null.org/dadaengine/manual-1.0/dada.html) by Andrew C. Bulhak.*
