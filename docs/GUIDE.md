@@ -411,6 +411,7 @@ asciify[char]: {
 
 By default, **rmutt** invokes the first rule in its input. Think of this as the "entry point" for your grammar. This is configurable from the [CLI](CLI.md) and the [API](API.md).
 
+<a name="options-package" />
 ### $options package
 
 This is a virtual package that gives access to the current options object.

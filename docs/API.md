@@ -1,6 +1,6 @@
 # rmutt.js API
 
-## Install
+## Installation
 
     $ npm install --save rmutt
 
@@ -8,7 +8,7 @@
 var rmutt = require('rmutt');
 ```
 
-# Functions
+## Functions
 
 * [`generator`](#generator)
 * [`rmutt.compile`](#compile)
@@ -17,7 +17,7 @@ var rmutt = require('rmutt');
 
 ## Shared options
 
-As internally some methods are reused by others, options of the former also apply to the latter:
+Since internally some of these methods reuse others, options of the reused methods also apply to those using them:
 
 * All [`rmutt.transpile`](#transpile) options apply to [`rmutt.compile`](#compile) and [`rmutt.generate`](#generate).
 * All [`rmutt.compile`](#compile) options apply to [`rmutt.generate`](#generate).
@@ -95,7 +95,7 @@ A given **rmutt** grammar can generate *N* possible strings, where *N* is finite
 Specifies the maximum depth to which **rmutt** will expand the grammar. This is usually used to prevent recursive grammars from crashing **rmutt** with stack overflows. Beyond the maximum stack depth, a rule will expand to an empty, zero-length string.
 
 * **randomSeed** (number|Array):
-Specifies a seed for the random number generator. Two runs against the same grammar with the same seed will generate identical output. The seed can be a single 32-bit integer or an array of 16 32-bit integers. If no seed is specified, a seed is generated according to **randomSeedType** option and returned in the [callback result options](generator-callback).
+Specifies a seed for the random number generator. Two runs against the same grammar with the same seed will generate identical output. The seed can be a single 32-bit integer or an array of 16 32-bit integers. If no seed is specified, a seed is generated according to **randomSeedType** option and returned in the [callback result options](generator-callback). Also, it can be expanded in the grammar using the [`$options.randomSeed`](./GUIDE.md#options-package) rule.
 
 <a name="generator-options-randomSeedType" />
 * **randomSeedType** (string):
@@ -144,7 +144,7 @@ Loads or creates a cached transpiled code file.
 Absolute path and file name where the transpiled code will be cached.
 
 * **cacheRegenerate** (boolean):
-Always create the transpiled file.
+Write the transpiled file even if it already exists.
 
 ### Example
 
