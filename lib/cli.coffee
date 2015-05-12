@@ -29,6 +29,9 @@ program
   .option('-r --random-seed <integer>',
     'Seed for the random number generator.', parseInt)
 
+  .option('-t --transpile',
+    'Output transpiled code instead of rule expansion.')
+
   .parse(process.argv)
 
 options = {}
@@ -52,13 +55,22 @@ generate = (source) ->
     return process.stderr.write err.stack if err?
     process.stdout.write result.generated
 
+transpile = (source) ->
+  options.header = file
+  rmutt.transpile source, options, (err, result) ->
+    return process.stderr.write err.stack if err?
+    process.stdout.write result.transpiled
+
 readStream = (stream) ->
   source = ''
   stream.on 'readable', ->
     chunk = stream.read()
     source += chunk if chunk?
   stream.on 'end', ->
-    generate source
+    if program.transpile
+      transpile source
+    else
+      generate source
 
 if program.args[0]?
   file = path.join process.cwd(), program.args[0]

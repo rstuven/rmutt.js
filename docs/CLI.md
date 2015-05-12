@@ -35,10 +35,10 @@ $ echo "night-sky:('.' 5, ' ' 100, '*'){100000};" | rmutt
 ### Options
 
 ### `-h`, `--help`
-Print usage information and exit.
+Output usage information and exit.
 
 ### `-V`, `--version`
-Print version and exit.
+Output version and exit.
 
 ### `-c`, `--cache`
 If specified, load or create a cached transpiled code file.
@@ -60,3 +60,6 @@ Specifies the maximum depth to which **rmutt** will expand the grammar. This is 
 
 ### `-r`, `--random-seed <integer>`
 Specifies a seed for the random number generator. Two runs against the same grammar with the same seed will generate identical output. The seed must be a 32-bit integer. If no seed is specified, a seed is generated and can be expanded in the grammar using the [`$options.randomSeed`](./GUIDE.md#options-package) rule.
+
+### `-t`, `--transpile`
+Output transpiled code instead of rule expansion.
