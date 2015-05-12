@@ -180,7 +180,7 @@ types =
         generateRule rule, options
 
     concat [
-      '$choice('
+      'choice('
       choices
       ')'
     ]
@@ -197,8 +197,7 @@ types =
     args = rule.args?
     concat [
       LOCAL_SCOPE_VAR
-      '.invoke'
-      if rule.prefix is '@' then 'Indirection'
+      if rule.prefix is '@' then '.invokeIndirection'
       "('#{rule.name}'"
       if args then ', ['
       if args then generateRules rule.args, options
@@ -213,7 +212,7 @@ types =
 
   Mapping: (rule, options) ->
     concat [
-      '$mapping('
+      'mapping('
       generateRule rule.search, options
       ', '
       generateRule rule.replace, options
@@ -222,7 +221,7 @@ types =
 
   Repetition: (rule, options) ->
     concat [
-      '$repeat('
+      'repeat('
       generateRule rule.expr, options
       ', '
       JSON.stringify rule.range
@@ -245,9 +244,9 @@ types =
       false
 
     fn = if _.all(rule.items, isComposable)
-      '$compose'
+      'compose'
     else
-      '$concat'
+      'concat'
 
     concat [
       fn
@@ -262,7 +261,7 @@ types =
       rule = makeTreeLeftRecursive rule, 'Transformation', 'expr', 'func'
 
     concat [
-      '$transform('
+      'transform('
       generateRule rule.expr, options
       ', '
       generateRule rule.func, options

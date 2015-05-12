@@ -26,14 +26,20 @@ module.exports = ->
               local.vars['_' + (i+1)] = arg
               # named argument:
               local.vars[argnames[i]] = arg if argnames.length > 0
-          expandible local
+          localInvoke = (name, args) ->
+            local.invoke name, args
+          Object.keys($Scope::).forEach (k) ->
+            v = local[k]
+            return unless typeof v is 'function'
+            localInvoke[k] = v.bind local
+          expandible localInvoke
         invocation.$name = name
         invocation.displayName = 'invocation: ' + name
         @assignInternal name, invocation, scope
 
     assign: (name, value, scope) ->
       assignExpand = =>
-        @assignInternal name, $expand(value), scope
+        @assignInternal name, expand(value), scope
 
     assignInternal: (name, value, scope) ->
       if scope is 'root'
@@ -61,13 +67,13 @@ module.exports = ->
     invokeRule: (invocation, args) ->
 
       try
-        invoked = invocation @, args?.map $expand
+        invoked = invocation @, args?.map expand
       catch err
         # displayName is not recognized by node.js :(
         err.message += '\n    at rule ' + invocation.displayName
         throw err
 
-      ruleExpand = -> $expand invoked
+      ruleExpand = -> expand invoked
       ruleExpand.displayName = 'expansion: ' + invocation.$name
 
       try
@@ -107,7 +113,7 @@ module.exports = ->
 
         # external rule with arguments
         if args? and $options.externals?[name]?
-          return $options.externals[name].apply null, args?.map $expand
+          return $options.externals[name].apply null, args?.map expand
 
         # orphan args :(
         if args?
@@ -123,13 +129,13 @@ module.exports = ->
 
         return name
 
-  $choice = (args...) ->
-    $choiceExpand = ->
-      index = $choose args.length
+  choice = (args...) ->
+    choiceExpand = ->
+      index = choose args.length
       value = args[index]
-      $expand value
+      expand value
 
-  $choose = (terms) ->
+  choose = (terms) ->
     if $options.iteration?
       index = $options.iteration % terms
       $options.iteration = Math.floor $options.iteration / terms
@@ -137,46 +143,46 @@ module.exports = ->
       index = $random.integer 0, terms - 1
     index
 
-  $compose = (args...) ->
-    $composeExpand = ->
+  compose = (args...) ->
+    composeExpand = ->
       res = (v) -> v
       args
         .forEach (fn) ->
           nonClosure = res
-          res = (v) -> ($expand fn)(nonClosure(v))
+          res = (v) -> (expand fn)(nonClosure(v))
       res
 
-  $concat = (args...) ->
-    $concatExpand = ->
+  concat = (args...) ->
+    concatExpand = ->
       args
-        .map $expand
+        .map expand
         .filter (x) -> typeof x is 'string'
         .reduce ((a, b) -> a + b), ''
 
-  $expand = (value) ->
+  expand = (value) ->
     if typeof value is 'function'
       value()
     else
       value
 
-  $mapping = (search, replacement) ->
+  mapping = (search, replacement) ->
     ->
-      $mappingExpand = (input) ->
+      mappingExpand = (input) ->
         return unless input?
         return input unless replacement?
         return input.replace new RegExp(search, 'g'), ->
           args = arguments
-          $expand(replacement).replace /\\(\d+)/g, (m, n) -> args[n]
+          expand(replacement).replace /\\(\d+)/g, (m, n) -> args[n]
 
-  $repeat = (value, range) ->
-    $repeatExpand = ->
-      max = range.min + $choose (range.max - range.min + 1)
-      ($expand value for [1 .. max] by 1).join ''
+  repeat = (value, range) ->
+    repeatExpand = ->
+      max = range.min + choose (range.max - range.min + 1)
+      (expand value for [1 .. max] by 1).join ''
 
-  $transform = (input, through) ->
-    $transformExpand = ->
-      inputExpanded = $expand input
-      throughExpanded = $expand through
+  transform = (input, through) ->
+    transformExpand = ->
+      inputExpanded = expand input
+      throughExpanded = expand through
       unless typeof throughExpanded is 'function'
         # console.warn "Transform expression '#{fnExpanded?.toString()}' is not a function"
         return inputExpanded
