@@ -10,7 +10,7 @@ module.exports =
 
   compile: compile
 
-  generate: (source, options, callback) ->
+  expand: (source, options, callback) ->
     if callback?
       options ?= {}
     else
@@ -23,7 +23,7 @@ module.exports =
         return callback err if err?
         result.compiled result.options, callback
     else if typeof source is 'function'
-      # source is a generator
+      # source is an expander
       source options, callback
     else
-      callback new TypeError 'Source argument is not a string (grammar) or a function (generator)'
+      callback new TypeError 'Source argument is not a string (grammar) or a function (expander)'

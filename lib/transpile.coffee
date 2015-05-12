@@ -156,7 +156,7 @@ sections =
       ]
       '} catch (err) { return callback(err); }\n'
       '\n'
-      'callback(null, { generated: result, options: $options });\n'
+      'callback(null, { expanded: result, options: $options });\n'
     ]
 
 types =

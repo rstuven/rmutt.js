@@ -10,39 +10,39 @@ var rmutt = require('rmutt');
 
 ## Functions
 
-* [`generator`](#generator)
+* [`expander`](#expander)
 * [`rmutt.compile`](#compile)
 * [`rmutt.transpile`](#transpile)
-* [`rmutt.generate`](#generate)
+* [`rmutt.expand`](#expand)
 
 ## Shared options
 
 Since internally some of these methods reuse others, options of the reused methods also apply to those using them:
 
-* All [`rmutt.transpile`](#transpile) options apply to [`rmutt.compile`](#compile) and [`rmutt.generate`](#generate).
-* All [`rmutt.compile`](#compile) options apply to [`rmutt.generate`](#generate).
-* All [`generator`](#generator) options apply to [`rmutt.generate`](#generate).
+* All [`rmutt.transpile`](#transpile) options apply to [`rmutt.compile`](#compile) and [`rmutt.expand`](#expand).
+* All [`rmutt.compile`](#compile) options apply to [`rmutt.expand`](#expand).
+* All [`expander`](#expander) options apply to [`rmutt.expand`](#expand).
 
-<a name="generator" />
-## generator([options, ]callback)
+<a name="expander" />
+## expander([options, ]callback)
 Generates a (usually random) instance of the string specified by the source [grammar](GUIDE.md). This function is created by [`rmutt.compile`](#compile) or returned by a `require` from transpiled code (see [`rmutt.transpile`](#transpile)).
 
-<a name="generator-callback" />
+<a name="expander-callback" />
 ### callback
 A function with the following arguments:
 * **error** (Error)
 * **result** (object): An object with the following properties:
   * **options** (object): The options used (some may have changed during execution).
-  * **generated** (string): The generated text.
+  * **expanded** (string): The entry rule, expanded.
 
 ### options
 
-<a name="generator-options-entry" />
+<a name="expander-options-entry" />
 * **entry** (string):
 In order to produce a string, **rmutt** must start with one of the rules in the grammar. By default, **rmutt** expands the first rule it finds in the grammar, but you can use this option to specify another one. This option overrides the [`entry` option](#transpile-options-entry) passed to
 [`rmutt.transpile`](#transpile) or [`rmutt.compile`](#compile).
 
-<a name="generator-options-externals" />
+<a name="expander-options-externals" />
 * **externals** (object):
 Most of the time, the expressive generative power of **rmutt** is enough.
 But sometimes, implementing a complex rule in pure **rmutt**
@@ -59,14 +59,14 @@ expr: "1 + 2";
 ```
 The following example will define the transformation `xcalc`:
 ``` javascript
-rmutt.generate(grammar, {
+rmutt.expand(grammar, {
   externals: {
     xcalc: function (input) {
       return eval(input).toString(); // sorry, the Evil Eval got a part in this story
     }
   }
 }, function (err, result) {
-  // result.generated = "1 + 2 = 3"
+  // result.expanded = "1 + 2 = 3"
 });
 ```
 
@@ -77,14 +77,14 @@ expr: "1 + 2";
 ```
 The following will define the rule with arguments `calc`:
 ``` javascript
-rmutt.generate(grammar, {
+rmutt.expand(grammar, {
   externals: {
     calc: function (input, unit) {
       return unit + ' ' + eval(input).toString();
     }
   }
 }, function (err, result) {
-  // result.generated = "1 + 2 = USD 3"
+  // result.expanded = "1 + 2 = USD 3"
 });
 ```
 
@@ -95,9 +95,9 @@ A given **rmutt** grammar can generate *N* possible strings, where *N* is finite
 Specifies the maximum depth to which **rmutt** will expand the grammar. This is usually used to prevent recursive grammars from crashing **rmutt** with stack overflows. Beyond the maximum stack depth, a rule will expand to an empty, zero-length string.
 
 * **randomSeed** (number|Array):
-Specifies a seed for the random number generator. Two runs against the same grammar with the same seed will generate identical output. The seed can be a single 32-bit integer or an array of 16 32-bit integers. If no seed is specified, a seed is generated according to **randomSeedType** option and returned in the [callback result options](generator-callback). Also, it can be expanded in the grammar using the [`$options.randomSeed`](./GUIDE.md#options-package) rule.
+Specifies a seed for the random number expander. Two runs against the same grammar with the same seed will generate identical output. The seed can be a single 32-bit integer or an array of 16 32-bit integers. If no seed is specified, a seed is generated according to **randomSeedType** option and returned in the [callback result options](expander-callback). Also, it can be expanded in the grammar using the [`$options.randomSeed`](./GUIDE.md#options-package) rule.
 
-<a name="generator-options-randomSeedType" />
+<a name="expander-options-randomSeedType" />
 * **randomSeedType** (string):
 Specifies the type of the random seed if this has to be generated. Valid values are:
   * `"integer"` (default)
@@ -110,30 +110,30 @@ This option overrides the [`randomSeedType` option](#transpile-options-randomSee
 
 ``` javascript
 rmutt.compile(grammar, function (err, result) {
-  var generator = result.compiled;
+  var expander = result.compiled;
 });
 ```
 Or...
 ``` javascript
-var generator = require('path/to/transpiled/file');
+var expander = require('path/to/transpiled/file');
 ```
 Then
 ``` javascript
-generator(function (err, result) {
-  console.log(result.generated);
+expander(function (err, result) {
+  console.log(result.expanded);
 });
 ```
 
 <a name="compile" />
 ## rmutt.compile(grammar[, options], callback)
-Creates a [`generator`](#generator) function.
+Creates a [`expander`](#expander) function.
 
 ### callback
 A function with the following arguments:
 * **error** (Error)
 * **result** (object): An object with the following properties:
   * **options** (object): The options used (some may have changed during execution).
-  * **compiled** (Function): The [`generator`](#generator) function.
+  * **compiled** (Function): The [`expander`](#expander) function.
 
 ### options
 
@@ -153,14 +153,14 @@ rmutt.compile(grammar, {entry: 'entry-rule'}, function (err, result) {
   result.compiled(function (err, result1) {
   });
   result.compiled(function (err, result2) {
-    // depending on the chances, result2.generated is different than result1.generated
+    // depending on the chances, result2.expanded is different than result1.expanded
   });
 });
 ```
 
 <a name="transpile" />
 ## rmutt.transpile(grammar[, options], callback)
-Generates a string containing JavaScript code that can be saved in a file and later loaded using `require` to obtain a [`generator`](#generator) function.
+Generates a string containing JavaScript code that can be saved in a file and later loaded using `require` to obtain a [`expander`](#expander) function.
 
 ### callback
 A function with the following arguments:
@@ -175,8 +175,8 @@ A function with the following arguments:
 * **entry** (string):
 In order to produce a string, **rmutt** must start with one of the rules in the grammar. By default, **rmutt** expands the first rule it finds in the grammar, but you can use this option to specify another one.
 
-This option can be overriden by the [`entry` option](#generator-options-entry) passed to
-the [`generator`](#generator) function.
+This option can be overriden by the [`entry` option](#expander-options-entry) passed to
+the [`expander`](#expander) function.
 
 * **header** (string):
 Adds a comment line under the *"Generated by rmutt"* line in the transpiled code.
@@ -187,17 +187,17 @@ Specifies the type of the random seed if this has to be generated. Valid values 
   * `"integer"` (default)
   * `"array"`
 
-This option can be overriden by the [`randomSeedType` option](#generator-options-randomSeedType) passed to
-the [`generator`](#generator) function.
+This option can be overriden by the [`randomSeedType` option](#expander-options-randomSeedType) passed to
+the [`expander`](#expander) function.
 
-<a name="generate" />
-## rmutt.generate(grammar[, options], callback)
-Convenience function. Calls [`rmutt.transpile`](#transpile), [`rmutt.compile`](#compile) and executes the [`generator`](#generator) function for the source [`grammar`](GUIDE.md), all in one step, so the options are the same than for those methods.
+<a name="expand" />
+## rmutt.expand(grammar[, options], callback)
+Convenience function. Calls [`rmutt.transpile`](#transpile), [`rmutt.compile`](#compile) and executes the [`expander`](#expander) function for the source [`grammar`](GUIDE.md), all in one step, so the options are the same than for those methods.
 
 ### Example
 
 ``` javascript
-rmutt.generate("top: a,b,c,d;", function (err, result) {
-  console.log(result.generated);
+rmutt.expand("top: a,b,c,d;", function (err, result) {
+  console.log(result.expanded);
 });
 ```

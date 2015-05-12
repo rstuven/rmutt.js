@@ -49,11 +49,11 @@ options = {}
 # console.log program.args
 # console.log options
 
-generate = (source) ->
+expand = (source) ->
   options.header = file
-  rmutt.generate source, options, (err, result) ->
+  rmutt.expand source, options, (err, result) ->
     return process.stderr.write err.stack if err?
-    process.stdout.write result.generated
+    process.stdout.write result.expanded
 
 transpile = (source) ->
   options.header = file
@@ -70,7 +70,7 @@ readStream = (stream) ->
     if program.transpile
       transpile source
     else
-      generate source
+      expand source
 
 if program.args[0]?
   file = path.join process.cwd(), program.args[0]

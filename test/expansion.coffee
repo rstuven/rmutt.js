@@ -2,7 +2,7 @@ _ = require 'lodash'
 rmutt = require '..'
 {expect} = require 'chai'
 
-describe 'generation', ->
+describe 'expansion', ->
 
   expectUsingIteration = (grammar, done, expected, options) ->
     options ?= {}
@@ -15,7 +15,7 @@ describe 'generation', ->
         iterationOptions.iteration = index
         result.compiled iterationOptions, (err, result) ->
           return done err if err?
-          results[index] = result.generated
+          results[index] = result.expanded
           count++
           if count is expected.length
             expect(results).to.deep.equal expected
@@ -41,18 +41,18 @@ describe 'generation', ->
     grammar = """
       t: $options.randomSeed;
     """
-    rmutt.generate grammar, (err, result) ->
+    rmutt.expand grammar, (err, result) ->
       return done err if err?
       expect(result.options.randomSeedType).to.equal 'integer'
       expect(result.options.randomSeed).to.be.a 'number'
-      expect(result.options.randomSeed).to.equal +(result.generated)
+      expect(result.options.randomSeed).to.equal +(result.expanded)
       done()
 
   it 'uses random seed', (done) ->
     grammar = """
       t: "0"|"1"|"2";
     """
-    rmutt.generate grammar, randomSeed: 12345, (err, result) ->
+    rmutt.expand grammar, randomSeed: 12345, (err, result) ->
       return done err if err?
       expect(result.options.randomSeed).to.equal 12345
       done()
@@ -61,7 +61,7 @@ describe 'generation', ->
     grammar = """
       t: "0"|"1"|"2";
     """
-    rmutt.generate grammar, randomSeedType: 'array', (err, result) ->
+    rmutt.expand grammar, randomSeedType: 'array', (err, result) ->
       return done err if err?
       expect(result.options.randomSeedType).to.equal 'array'
       expect(result.options.randomSeed).to.be.instanceof Array
@@ -109,7 +109,7 @@ describe 'generation', ->
       foo: "yes" bar;
       bar: foo;
     """
-    rmutt.generate grammar, (err, result) ->
+    rmutt.expand grammar, (err, result) ->
       expect(err?.message).to.match /Maximum call stack size exceeded/
       done()
 
@@ -224,17 +224,17 @@ describe 'generation', ->
 
       result.compiled iteration: 0, (err, result) ->
         return done err if err?
-        expect(result.generated).to.equal 'ate patiently with you'
+        expect(result.expanded).to.equal 'ate patiently with you'
         done() if ++count is expected
 
       result.compiled iteration: 200, (err, result) ->
         return done err if err?
-        expect(result.generated).to.equal 'waited patiently for me'
+        expect(result.expanded).to.equal 'waited patiently for me'
         done() if ++count is expected
 
       result.compiled iteration: 400, (err, result) ->
         return done err if err?
-        expect(result.generated).to.equal 'yelled impatiently at you'
+        expect(result.expanded).to.equal 'yelled impatiently at you'
         done() if ++count is expected
 
   it 't7 - variables', (done) ->
@@ -606,9 +606,9 @@ describe 'generation', ->
       """
 
     it 'first rule by default', (done) ->
-      rmutt.generate @grammar, (err, result) ->
+      rmutt.expand @grammar, (err, result) ->
         return done err if err?
-        expect(result.generated).to.equal 'A'
+        expect(result.expanded).to.equal 'A'
         done()
 
     it 'defined in transpilation', (done) ->
@@ -616,7 +616,7 @@ describe 'generation', ->
         return done err if err?
         result.compiled (err, result) ->
           return done err if err?
-          expect(result.generated).to.equal 'B'
+          expect(result.expanded).to.equal 'B'
           done()
 
     it 'override defined in transpilation', (done) ->
@@ -624,7 +624,7 @@ describe 'generation', ->
         return done err if err?
         result.compiled entry: 'c', (err, result) ->
           return done err if err?
-          expect(result.generated).to.equal 'C'
+          expect(result.expanded).to.equal 'C'
           done()
 
   describe 'code block', ->
@@ -753,7 +753,7 @@ describe 'generation', ->
         top: expr " = " calc[expr];
         expr: "1 + 2";
       """
-      rmutt.generate grammar, (err, result) ->
+      rmutt.expand grammar, (err, result) ->
         expect(err?.message).to.match /Missing parameterized rule/
         done()
 

@@ -59,14 +59,14 @@ describe 'examples', ->
       return done err if err?
       # console.log result.compiled.toString()
 
-      # console.time('generate')
+      # console.time('expand')
       result.compiled (err, result) ->
-        # console.timeEnd('generate')
+        # console.timeEnd('expand')
         return done err if err?
 
         if LOG_OUTPUT
           console.log()
-          console.log result.generated
+          console.log result.expanded
           console.log()
           console.log result.options
 
