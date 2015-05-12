@@ -13,6 +13,7 @@
   "author": "Ricardo Stuven <rstuven@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "commander": "^2.8.1",
     "lodash": "^3.7.0",
     "pegjs": "^0.8.0",
     "string-hash": "^1.1.0"
