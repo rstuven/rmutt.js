@@ -44,13 +44,19 @@ readOrCreateCache = (source, options, callback) ->
   try
     options.cacheFile ?= path.join os.tmpdir(), 'rmutt_' + hash source
     if options.cacheRegenerate isnt true and fs.existsSync options.cacheFile
-      console.log 'Loading cache: ', options.cacheFile
-      fs.readFile options.cacheFile, callback
+      # console.log 'Loading cache: ', options.cacheFile
+      fs.readFile options.cacheFile, (err, result) ->
+        return callback err if err?
+        callback null,
+          transpiled: result
+          options: options
     else
       transpile source, options, (err, result) ->
         return callback err if err?
         fs.writeFile options.cacheFile, result.transpiled, (err) ->
           return callback err if err?
-          callback null, result.transpiled
+          callback null,
+            transpiled: result.transpiled
+            options: options
   catch err
     callback err
