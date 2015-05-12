@@ -27,7 +27,8 @@ module.exports = ->
               # named argument:
               local.vars[argnames[i]] = arg if argnames.length > 0
           expandible local
-        invocation.displayName = name
+        invocation.$name = name
+        invocation.displayName = 'invocation: ' + name
         @assignInternal name, invocation, scope
 
     assign: (name, value, scope) ->
@@ -57,18 +58,23 @@ module.exports = ->
         return result if typeof result is 'function'
         (result ? '').toString()
 
-    invokeRule: (rule, args) ->
-      invoked = rule @, args?.map $expand
+    invokeRule: (invocation, args) ->
 
-      # TODO: https://github.com/RReverser/stack-displayname
+      try
+        invoked = invocation @, args?.map $expand
+      catch err
+        # displayName is not recognized by node.js :(
+        err.message += '\n    at rule ' + invocation.displayName
+        throw err
+
       ruleExpand = -> $expand invoked
-      ruleExpand.displayName = rule.displayName
+      ruleExpand.displayName = 'expansion: ' + invocation.$name
 
       try
         return ruleExpand()
       catch err
-        # In the meantime...
-        err.message += '\n    at rule ' + rule.displayName
+        # displayName is not recognized by node.js :(
+        err.message += '\n    at rule ' + ruleExpand.displayName
         throw err
 
     invokeIndirection: (name, args) ->
