@@ -1,10 +1,15 @@
+[![Build Status](https://secure.travis-ci.org/rstuven/rmutt.js.png?branch=master)](http://travis-ci.org/rstuven/rmutt.js)
+[![Coverage Status](https://coveralls.io/repos/rstuven/rmutt.js/badge.svg)](https://coveralls.io/r/rstuven/rmutt.js)
+[![dependencies Status](https://david-dm.org/rstuven/rmutt.js.svg)](https://david-dm.org/rstuven/rmutt.js#info=dependencies)
+[![devDependencies Status](https://david-dm.org/rstuven/rmutt.js/dev-status.svg)](https://david-dm.org/rstuven/rmutt.js#info=devDependencies)
+
 # rmutt.js
 
 > **rmutt.js** is a transpiled language
 > for generating random strings from
 > [context-sensitive grammars](https://en.wikipedia.org/wiki/Context-sensitive_grammar).
 
-That may sound a bit dry but actually can result in
+That may sound a bit dry but can actually result in
 **a tremendous amount of fun** and several
 practical and not so practical applications. Any application where random combinations of symbols can provoke *amusing*, *aesthetic* or *inspirational* effects, can be implemented with relative ease using **rmutt.js**. Read more about it:
 
