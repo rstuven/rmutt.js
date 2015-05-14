@@ -7,7 +7,17 @@
     "rmutt": "./bin/rmutt"
   },
   "scripts": {
-    "test": "mocha -R dot --timeout 30000"
+    "test":           "mocha",
+    "test-cov":       "mocha -r blanket -g expansion -R html-cov > coverage.html",
+    "test-cov-text":  "mocha -r blanket -g expansion -R mocha-text-cov",
+    "test-coveralls": "mocha -r blanket -g expansion -R mocha-lcov-reporter | coveralls"
+  },
+  "config": {
+    "blanket": {
+      "pattern": "lib",
+      "loader": "./node-loaders/coffee-script",
+      "data-cover-never": "node_modules"
+    }
   },
   "repository": "",
   "author": "Ricardo Stuven <rstuven@gmail.com>",
@@ -19,8 +29,12 @@
     "string-hash": "^1.1.0"
   },
   "devDependencies": {
+    "blanket": "git://github.com/alex-seville/blanket.git",
     "chai": "^2.3.0",
     "coffee-script": "^1.9.2",
-    "mocha": "^2.2.4"
+    "coveralls": "^2.11.2",
+    "mocha": "^2.2.4",
+    "mocha-lcov-reporter": "0.0.2",
+    "mocha-text-cov": "^0.1.0"
   }
 }
