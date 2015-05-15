@@ -30,6 +30,7 @@
   "author": "Ricardo Stuven <rstuven@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "coffee-script": "^1.9.2",
     "commander": "^2.8.1",
     "lodash": "^3.7.0",
     "pegjs": "^0.8.0",
@@ -38,7 +39,6 @@
   "devDependencies": {
     "blanket": "git://github.com/alex-seville/blanket.git",
     "chai": "^2.3.0",
-    "coffee-script": "^1.9.2",
     "coveralls": "^2.11.2",
     "mocha": "^2.2.4",
     "mocha-lcov-reporter": "0.0.2",
