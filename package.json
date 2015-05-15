@@ -1,11 +1,18 @@
 {
   "name": "rmutt",
   "version": "1.0.0",
-  "description": "generates random text from context-free grammars",
+  "description": "generates random text from context-sensitive grammars",
   "main": "index.js",
   "bin": {
     "rmutt": "./bin/rmutt"
   },
+  "files": [
+    "bin/",
+    "lib/",
+    "index.js",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
     "test":           "mocha",
     "test-cov":       "mocha -r blanket -g expansion -R html-cov > coverage.html",
