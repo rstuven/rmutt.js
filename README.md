@@ -19,12 +19,12 @@ practical and not so practical applications. Any application where random combin
 * The [JavaScript API](docs/API.md), if you dare!
 * Some [example rmutt grammars](./examples/) to find inspiration.
 
-### Application domains
+### Possible application domains
 
-* Music ([algorithmic composition](https://en.wikipedia.org/wiki/Algorithmic_composition#Grammars))
-* Visual arts ([Context Free Art](http://www.contextfreeart.org/), [Structure Synth](http://structuresynth.sourceforge.net/))
-* Literature ([cut-up technique](https://en.wikipedia.org/wiki/Cut-up_technique), [infinite monkeys](https://en.wikipedia.org/wiki/Infinite_monkey_theorem#Random_document_generation))
 * Parody ([Postmodern essay generator](https://en.wikipedia.org/wiki/Postmodernism_Generator), [High-energy theory paper generator](http://davidsd.org/2010/03/the-snarxiv/) and [more](https://en.wikipedia.org/wiki/Parody_generator))
+* Literature ([cut-up technique](https://en.wikipedia.org/wiki/Cut-up_technique), [infinite monkeys](https://en.wikipedia.org/wiki/Infinite_monkey_theorem#Random_document_generation))
+* Visual arts ([Context Free Art](http://www.contextfreeart.org/), [Structure Synth](http://structuresynth.sourceforge.net/))
+* Music ([algorithmic composition](https://en.wikipedia.org/wiki/Algorithmic_composition#Grammars))
 * Game design ([procedural content generation](http://www.di.uniba.it/~vessio/drafts/NCMA-2014_CR.pdf))
 * Code testing ([test case generation](http://www.monkeys.com/m4r/))
 * Brainstorming ([Random Input technique](http://www.sociology.org.uk/as4i3ri.pdf))
