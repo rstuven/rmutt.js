@@ -1,6 +1,6 @@
 {
   "name": "rmutt",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "generates random text from context-sensitive grammars",
   "main": "index.js",
   "bin": {
@@ -14,9 +14,9 @@
     "README.md"
   ],
   "scripts": {
-    "test":           "mocha",
-    "test-cov":       "mocha -r blanket -g expansion -R html-cov > coverage.html",
-    "test-cov-text":  "mocha -r blanket -g expansion -R mocha-text-cov",
+    "test": "mocha",
+    "test-cov": "mocha -r blanket -g expansion -R html-cov > coverage.html",
+    "test-cov-text": "mocha -r blanket -g expansion -R mocha-text-cov",
     "test-coveralls": "mocha -r blanket -g expansion -R mocha-lcov-reporter | coveralls"
   },
   "config": {
