@@ -26,7 +26,7 @@
       "data-cover-never": "node_modules"
     }
   },
-  "repository": "",
+  "repository": "github:rstuven/rmutt.js",
   "author": "Ricardo Stuven <rstuven@gmail.com>",
   "license": "MIT",
   "dependencies": {
