@@ -126,7 +126,7 @@ expander(function (err, result) {
 
 <a name="compile" />
 ## rmutt.compile(grammar[, options], callback)
-Creates a [`expander`](#expander) function.
+Creates an [`expander`](#expander) function.
 
 ### callback
 A function with the following arguments:
@@ -160,7 +160,7 @@ rmutt.compile(grammar, {entry: 'entry-rule'}, function (err, result) {
 
 <a name="transpile" />
 ## rmutt.transpile(grammar[, options], callback)
-Generates a string containing JavaScript code that can be saved in a file and later loaded using `require` to obtain a [`expander`](#expander) function.
+Generates a string containing JavaScript code that can be saved in a file and later loaded using `require` to obtain an [`expander`](#expander) function.
 
 ### callback
 A function with the following arguments:
