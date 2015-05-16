@@ -1,0 +1,29 @@
+top:
+"Copy the following line and paste it in http://typedrummer.com/\n\n"
+
+speedup? song
+
+")" // end marker, no-op
+
+"\n\nTry \"switch to new samples\"\n"
+"Generated using random seed " $options.randomSeed;
+
+speedup: "(";
+
+song:
+  phrase{4}
+, (p1=phrase) (p2=phrase) p1 p2 phrase{2}
+, (p1=phrase) (p2=phrase) p1{2} p2{2}
+, (p1=phrase) (p2=phrase) (p3=phrase) p1{2} p2 p1{2} p3
+, (p1=phrase) (p2=phrase) (p3=phrase) p1 p2 p3{2}
+;
+
+phrase:
+  (w1=word) w1{4}
+, (w1=word) (w2=word) w1 w2 w1 w2
+, (w1=word) (w2=word) w1 w1 w2 w2
+;
+
+word: note{4};
+
+note: " " 5,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z;
