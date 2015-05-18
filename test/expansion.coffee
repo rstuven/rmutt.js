@@ -430,16 +430,17 @@ describe 'expansion', ->
       "ogre starts with the letter 'O', Mr. Smarty Pants"
     ]
 
-  describe 'multiplier', ->
+  describe 'quantifier', ->
 
     it 't12 - probability multipliers', (done) ->
       grammar = """
         package test;
         a: "0" 3| "1";
       """
+      # in iteration mode, quantifier is ignored
       expectUsingIteration grammar, done, [
         '0'
-        '0'
+        '1'
         '0'
         '1'
       ]
@@ -452,6 +453,49 @@ describe 'expansion', ->
       expectUsingIteration grammar, done, [
         'xyz'
       ]
+
+    it 'cumulated probabilities', (done) ->
+      grammar = """
+        t: "0", "1" 0.1, "2", "3" 0.5;
+      """
+      expected = [0.2, 0.1, 0.2, 0.5]
+      testProbabilities grammar, expected, done
+
+    it 'cumulated multipliers', (done) ->
+      grammar = """
+        t: "0", "1" 2, "2", "3" 6;
+      """
+      expected = [0.1, 0.2, 0.1, 0.6]
+      testProbabilities grammar, expected, done
+
+    it 'combined quantifiers', (done) ->
+      grammar = """
+        t: "0" 2, "1" 0.1, "2";
+      """
+      expected = [0.6, 0.1, 0.3]
+      testProbabilities grammar, expected, done
+
+    # TODO: test against calculated distribution instead (or too?)
+    testProbabilities = (grammar, expected, done) ->
+      rmutt.compile grammar, (err, result) ->
+        return done err if err?
+        output = []
+        for i in [1..500] by 1
+          result.compiled (err, result) ->
+            value = +result.expanded
+            output[value] ?= 0
+            output[value]++
+
+        sum = 0
+        for i in [0..expected.length - 1] by 1
+          sum += (output[i] ? 0)
+
+        for i in [0..expected.length - 1] by 1
+          output[i] = Math.round( 10 * (output[i] ? 0) / sum) / 10
+
+        expect(output).to.deep.equal expected
+
+        done()
 
   it 't14 - includes', (done) ->
     grammar = """

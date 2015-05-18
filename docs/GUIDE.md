@@ -356,23 +356,43 @@ In this example, the `email_addr` rule from email.rm is used. When you use an in
 
 Includes can occur anywhere in a grammar.
 
-### Probability multipliers
+### Probability quantifiers
 
-A choice can be followed by an optional probability multiplier, which increases the probability that it will be selected, relative to other choices in the same rule. A probability multiplier consists of an integer at the end of a choice. Larger integers denote higher selection probabilities. For instance
-
-``` coffeescript
-number: digit{16};
-digit: "0" 12, "1";
-```
-
-will produce a string of 16 zeros and ones, which is likely to consist mostly of zeroes. Probability multipliers are a shorthand for repeatedly adding a choice to the rule. The above grammar is identical to the following one:
+A choice can be followed by an optional probability quantifier, which may increase or decrease the probability that it will be selected, relative to other choices in the same rule. A quantifier consists of a real lower than 1 (probability) or an integer greater than 1 (multiplier) at the end of a choice. For instance
 
 ``` coffeescript
 number: digit{16};
-digit: "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "1";
+digit: "0" 9, "1";
 ```
 
-**rmutt** does not support non-integer weights on choices, because this would make it impossible to enumerate all possible outcomes for a given grammar.
+will produce a string of 16 zeros and ones, which is likely to consist mostly of zeroes. Probability multipliers are a shorthand for repeatedly adding a choice to the rule. The above grammar is equivalent to but more space efficient than the following one:
+
+``` coffeescript
+number: digit{16};
+digit: "0", "0", "0", "0", "0", "0", "0", "0", "0", "1";
+```
+
+It's also equivalent to
+
+``` coffeescript
+number: digit{16};
+digit: "0", "1" 0.1;
+```
+
+This is, given a total probability of 1, "1" has probability 0.1 and "0" has the remaining probability (0.9)
+
+Probabilities and multipliers can be combined. For example:
+
+``` coffeescript
+number: digit{16};
+digit: "0" 2, "1" 0.1, "2";
+```
+
+This is, out of 4 choices ("0" counts twice):
+* "1" got 0.1 probability, as specified
+* the remaining 0.9 (total probability is 1) is distributed among 3 choices (0.3 each)
+* "0" got 0.6 (0.3 multiplied by 2, as specified)
+* "2" got 0.3 (the remaining)
 
 ### Embedded code
 

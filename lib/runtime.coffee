@@ -129,19 +129,94 @@ module.exports = ->
 
         return name
 
-  choice = (args...) ->
-    choiceExpand = ->
-      index = choose args.length
-      value = args[index]
-      expand value
+  class $Choices
 
-  choose = (terms) ->
-    if $options.iteration?
-      index = $options.iteration % terms
-      $options.iteration = Math.floor $options.iteration / terms
-    else
-      index = $random.integer 0, terms - 1
-    index
+    constructor: (values) ->
+      @size = values.length
+      @choices = values.map (value) ->
+        if typeof value is 'object'
+          value
+        else
+          value: value
+      @fillProbabilities()
+      @fillCumulative()
+
+    @choose: (size) ->
+      if $options.iteration?
+        index = $options.iteration % size
+        $options.iteration = Math.floor $options.iteration / size
+        index
+      else
+        $random.integer 0, size - 1
+
+    choose: ->
+      if $options.iteration? or @even
+        index = $Choices.choose @size
+        choice = @choices[index]
+      else
+        choice = @firstUnderCumulative $random.realZeroToOneExclusive()
+
+      choice?.value
+
+    firstUnderCumulative: (value) ->
+      for choice in @choices
+        return choice if value <= choice.cum
+      return
+
+    fillProbabilities: ->
+
+      # sum and count specified quantifiers
+      sum = 0
+      count = 0
+      extra = 0
+      for choice in @choices when choice.q?
+        if choice.q < 1
+          # q is probability
+          choice.p = choice.q
+          sum += choice.p
+          count++
+        else
+          # q is multiplier
+          extra += choice.q - 1
+
+      # distribute remaining probability
+      d = (1 - sum) / (@size + extra - count)
+
+      @even = true
+      p = null
+      for choice in @choices
+        if not choice.q?
+          choice.p = @round d
+        else if choice.q > 1
+          choice.p = @round d * choice.q
+
+        @even = false if p? and choice.p isnt p
+        p ?= choice.p
+
+      return
+
+    fillCumulative: ->
+      return if @even # it's not worth the effort
+
+      cum = 0
+      for i in [0 .. @size - 2]
+        choice = @choices[i]
+        cum += choice.p
+        choice.cum = @round cum
+
+      # to avoid rounding issues
+      @choices[@size - 1].cum = 1
+
+      return
+
+    round: (value) ->
+      +(value.toFixed 5)
+
+  choose = (args...) ->
+    $choices = new $Choices args
+    chooseExpand = ->
+      value = $choices.choose()
+      expand value
 
   compose = (args...) ->
     composeExpand = ->
@@ -176,7 +251,7 @@ module.exports = ->
 
   repeat = (value, range) ->
     repeatExpand = ->
-      max = range.min + choose (range.max - range.min + 1)
+      max = range.min + $Choices.choose (range.max - range.min + 1)
       (expand value for [1 .. max] by 1).join ''
 
   transform = (input, through) ->

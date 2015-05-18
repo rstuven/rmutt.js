@@ -164,23 +164,27 @@ types =
   Assignment: (rule, options) ->
     generateAssignment LOCAL_SCOPE_VAR, rule, generateRule rule.expr, options
 
-  Choice: (rule, options) ->
+  Choices: (rule, options) ->
 
     # Simplify single choice
-    if rule.items.length is 1 and rule.items[0].type isnt 'Multiplied'
+    if rule.items.length is 1
       return generateRule rule.items[0], options
 
     choices = pushJoin ', ', rule.items.map (rule) ->
       return "''" if not rule?
-      if rule.type is 'Multiplied'
-        multiplied = Array rule.multiplier
-        _.fill multiplied, generateRule rule.expr, options
-        pushJoin ', ', multiplied
+      if rule.type is 'Quantified'
+        concat [
+          '{value: '
+          generateRule rule.expr, options
+          ', q: '
+          rule.quantifier
+          '}'
+        ]
       else
         generateRule rule, options
 
     concat [
-      'choice('
+      'choose('
       choices
       ')'
     ]
@@ -205,9 +209,9 @@ types =
       ')'
     ]
 
-  Multiplied: (rule, options) ->
-    # Ignore rule.multiplier (parsed at this level for backward compatibility).
-    # See it in action in Choice type.
+  Quantified: (rule, options) ->
+    # Ignore rule.quantifier (parsed at this level for backward compatibility).
+    # See it in action in Choices type.
     generateRule rule.expr, options
 
   Mapping: (rule, options) ->

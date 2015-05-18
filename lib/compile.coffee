@@ -20,7 +20,6 @@ module.exports = (source, options, callback) ->
   options = _.clone options
 
   compileTranspiled = (err, result) ->
-    # console.log transpiled
     return callback err if err?
     module = {}
     try
