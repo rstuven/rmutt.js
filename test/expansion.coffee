@@ -2,6 +2,133 @@ _ = require 'lodash'
 rmutt = require '..'
 {expect} = require 'chai'
 
+describe.only 'probabilistic choices', ->
+
+  describe 'fillProbs', ->
+
+    it 'distribute all empty', ->
+      list = [{v:1}, {v:2}, {v:3}, {v:4}]
+      fillProbs list
+      expect(list).to.deep.equal [{v:1,p:0.25},{v:2,p:0.25},{v:3,p:0.25},{v:4,p:0.25}]
+
+    it 'distribute 1 fixed, 2 empty', ->
+      list = [{v:1}, {v:2,p:0.5}, {v:3}]
+      fillProbs list
+      expect(list).to.deep.equal [{v:1,p:0.25},{v:2,p:0.5},{v:3,p:0.25}]
+
+    it 'distribute 2 fixed, 2 empty', ->
+      list = [{v:1}, {v:2,p:0.5}, {v:3}, {v:4,p:0.3}]
+      fillProbs list
+      expect(list).to.deep.equal [{v:1,p:0.1},{v:2,p:0.5},{v:3,p:0.1},{v:4,p:0.3}]
+
+  describe 'accProbs', ->
+    it 'acc', ->
+      list = [
+        {v:2,p:0.5}
+        {v:1,p:0.25}
+        {v:3,p:0.25}
+      ]
+      accProbs list
+      expect(list).to.deep.equal [
+        {v:2,p:0.5,acc:0.5}
+        {v:1,p:0.25,acc:0.75}
+        {v:3,p:0.25,acc:1}
+      ]
+
+  describe 'getByAccProb', ->
+
+    it 'xxx', ->
+      probs = [
+        {v:1}
+        {v:2,p:0.3}
+        {v:3}
+        {v:4,p:0.1}
+        {v:5,p:0.2}
+        {v:6,p:0.15}
+      ]
+
+      fillProbs probs
+      accProbs probs
+
+      N = 10
+      result = []
+      for i in [1..N] by 1
+        result.push (getByAccProb probs, i/N).v
+      expect(result).to.deep.equal [
+        1,
+        2,
+        2,
+        2,
+        3,
+        4,
+        5,
+        5,
+        6,
+        6
+      ]
+
+
+    it 'yyy', ->
+      probs = [
+        {v:1}
+        {v:2,p:0.3}
+        {v:3}
+        {v:4,p:0.1}
+        {v:5,p:0.2}
+        {v:6,p:0.15}
+      ]
+      fillProbs probs
+      accProbs probs
+
+      result = {}
+      for i in [1..3000000] by 1
+        item = getByAccProb probs, Math.random()
+        result[item.v] ?= 0
+        result[item.v]++
+
+      sum = 0
+      for item in probs
+        sum += (result[item.v] ? 0)
+
+      for item in probs
+        result[item.v] = +( (result[item.v] ? 0) / sum).toFixed 3
+
+      expected = {}
+      for item in probs
+        expected[item.v] = item.p
+
+      expect(result).to.deep.equal expected
+
+
+fillProbs = (list) ->
+  N = list.length
+  s = 0
+  n = 0
+
+  for item in list when item.p?
+    s += item.p
+    n += 1
+    # r.push v:item.v, p: item.p
+
+  p = +( (1-s) / (N-n) ).toFixed 5
+
+  for item in list when not item.p?
+    item.p = p
+
+  list
+
+accProbs = (list) ->
+  acc = 0
+  for item in list
+    item.acc = +( acc + item.p ).toFixed 5
+    acc += item.p
+  return
+
+getByAccProb = (list, index) ->
+  for item in list
+    return item if index <= item.acc
+  return
+
 describe 'expansion', ->
 
   expectUsingIteration = (grammar, done, expected, options) ->
