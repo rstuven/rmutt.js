@@ -17,7 +17,7 @@
     "test": "mocha",
     "test-cov": "mocha -r blanket -g expansion -R html-cov > coverage.html",
     "test-cov-text": "mocha -r blanket -g expansion -R mocha-text-cov",
-    "test-coveralls": "mocha -r blanket -g expansion -R mocha-lcov-reporter | coveralls"
+    "test-coveralls": "mocha -r blanket -g expansion -R mocha-lcov-reporter | coveralls || true"
   },
   "config": {
     "blanket": {
