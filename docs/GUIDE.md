@@ -29,6 +29,8 @@ I'm leaving on Thursday
 
 In the example, the literal "I'm leaving on " is followed by the term `day`, which tells **rmutt** to look up the rule named `day` to determine what to output next.
 
+### Choices
+
 A rule can contain more than one allowable choice. Choices are separated by commas. So for instance if we change our first rule to:
 
 ``` coffeescript
@@ -356,9 +358,64 @@ In this example, the `email_addr` rule from email.rm is used. When you use an in
 
 Includes can occur anywhere in a grammar.
 
+### Shuffling
+
+Consider the following grammar:
+``` coffeescript
+top: paragraph{4};
+paragraph: transition_adverb sentence ".\n";
+transition_adverb: "also", "moreover", "in addition", "furthermore", "additionally";
+sentence: "some sentence";
+```
+
+With some (really bad) luck, we could get the result:
+```
+moreover some sentence.
+moreover some sentence.
+moreover some sentence.
+moreover some sentence.
+```
+
+This is an extreme example, but even one consecutive repetition of adverbs starting paragraphs could look unnatural. This gets more probable with shorter lists of choices.
+
+To achieve more variety, we can specify a shuffle behavior using the `&` prefix. This will prepare a random permutation cycle for the list in order to avoid repeated consecutive items. This way we can ensure we never get a result like above. For example:
+
+Thus:
+``` coffeescript
+top: paragraph{6};
+paragraph: transition_adverb sentence ".\n";
+transition_adverb: & "also", "furthermore", "additionally";
+sentence: "some sentence";
+```
+would generate:
+```
+furthermore some sentence.
+also some sentence.
+additionally some sentence.
+furthermore some sentence.
+also some sentence.
+additionally some sentence.
+```
+
+Using the `&&` prefix, the list will be shuffled again when the choices are used up.
+
+Shuffling modes can be nested:
+
+``` coffeescript
+  t: (s{4} " "){6};
+  s: & "0","1","2",(&& "x","y","z");
+```
+
+would produce combinations like this:
+```
+10z2 10y2 10x2 10x2 10z2 10y2
+```
+
 ### Probability quantifiers
 
-A choice can be followed by an optional probability quantifier, which may increase or decrease the probability that it will be selected, relative to other choices in the same rule. A quantifier consists of a real lower than 1 (probability) or an integer greater than 1 (multiplier) at the end of a choice. For instance
+A choice can be followed by an optional probability quantifier, which may increase or decrease the probability that it will be selected, relative to other choices in the same list. For shuffled choices, it will affect the order of the permutation (the probability of being in the first places).
+
+A quantifier consists of a real lower than 1 (probability) or an integer greater than 1 (multiplier) at the end of a choice. For instance
 
 ``` coffeescript
 number: digit{16};

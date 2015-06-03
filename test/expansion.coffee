@@ -80,6 +80,18 @@ describe 'expansion', ->
       ''
     ]
 
+  it 'shuffle and reshuffle', (done) ->
+    grammar = """
+      t: (s{4} " "){6};
+      s: & "0","1","2",(&& "x","y","z");
+    """
+    rmutt.expand grammar, randomSeed: 0, (err, result) ->
+      return done err if err?
+      expect(result.expanded).to.equal '10z2 10y2 10x2 10x2 10z2 10y2 '
+      done()
+
+  # TODO: specify (re)shuffle on invocation
+
   it 't2 - recursion', (done) ->
     grammar = """
       t: "0"|a;
@@ -480,7 +492,7 @@ describe 'expansion', ->
       rmutt.compile grammar, (err, result) ->
         return done err if err?
         output = []
-        for i in [1..500] by 1
+        for i in [1..1000] by 1
           result.compiled (err, result) ->
             value = +result.expanded
             output[value] ?= 0

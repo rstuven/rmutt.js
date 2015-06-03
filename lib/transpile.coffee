@@ -184,7 +184,11 @@ types =
         generateRule rule, options
 
     concat [
-      'choose('
+      'choose(\''
+      rule.mode
+      '\', '
+      rule.id
+      ', '
       choices
       ')'
     ]

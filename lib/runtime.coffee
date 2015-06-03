@@ -129,17 +129,61 @@ module.exports = ->
 
         return name
 
-  class $Choices
+  class $Chooser
 
-    constructor: (values) ->
+    constructor: (@mode, values) ->
       @size = values.length
       @choices = values.map (value) ->
         if typeof value is 'object'
-          value
+          q: value.q
         else
-          value: value
-      @fillProbabilities()
-      @fillCumulative()
+          {}
+
+      fillProbabilities @choices
+      @even = isEven @choices
+      if not @even # it's not worth the effort
+        fillCumulative @choices
+
+      if @mode in ['shuffle', 'reshuffle']
+        @shuffle()
+
+    # shuffle, probabilities in descending order
+    shuffle: ->
+      @shuffled = []
+      choices = @choices.map (choice, index) ->
+        p: choice.p
+        cum: choice.cum
+        index: index
+
+      for i in [1 .. choices.length - 1] by 1
+
+        # select random (most probable) choice
+        if @even
+          index = $Chooser.choose choices.length
+        else
+          index = randomIndex choices
+        @shuffled.push choices[index].index
+
+        # remove choice and redistribute probabilities
+        choices.splice index, 1
+        redistribute choices unless @even
+
+      @shuffled.push choices[0].index
+
+    redistribute = (choices) ->
+
+      sum = 0
+      for choice in choices
+        sum += choice.p
+
+      cum = 0
+      for choice in choices
+        choice.p = round choice.p / sum
+        cum += choice.p
+        choice.cum = round cum
+
+      # to avoid rounding issues
+      choices[choices.length - 1].cum = 1
 
     @choose: (size) ->
       if $options.iteration?
@@ -150,26 +194,38 @@ module.exports = ->
         $random.integer 0, size - 1
 
     choose: ->
-      if $options.iteration? or @even
-        index = $Choices.choose @size
-        choice = @choices[index]
+      if @shuffled?
+        @nextShuffled()
+      else if $options.iteration? or @even
+        $Chooser.choose @size
       else
-        choice = @firstUnderCumulative $random.realZeroToOneExclusive()
+        randomIndex @choices
 
-      choice?.value
+    nextShuffled: ->
+      @shuffleIndex ?= 0
+      index = @shuffled[@shuffleIndex]
+      @shuffleIndex++
+      if @shuffleIndex >= @shuffled.length
+        @shuffleIndex = 0
+        if @mode is 'reshuffle'
+          @shuffle()
+      index
 
-    firstUnderCumulative: (value) ->
-      for choice in @choices
-        return choice if value <= choice.cum
+    randomIndex = (choices) ->
+      firstUnderCumulative choices, $random.realZeroToOneExclusive()
+
+    firstUnderCumulative = (choices, value) ->
+      for choice, index in choices
+        return index if value <= choice.cum
       return
 
-    fillProbabilities: ->
+    fillProbabilities = (choices) ->
 
       # sum and count specified quantifiers
       sum = 0
       count = 0
       extra = 0
-      for choice in @choices when choice.q?
+      for choice in choices when choice.q?
         if choice.q < 1
           # q is probability
           choice.p = choice.q
@@ -180,42 +236,47 @@ module.exports = ->
           extra += choice.q - 1
 
       # distribute remaining probability
-      d = (1 - sum) / (@size + extra - count)
+      d = (1 - sum) / (choices.length + extra - count)
 
-      @even = true
-      p = null
-      for choice in @choices
+      for choice in choices
         if not choice.q?
-          choice.p = @round d
+          choice.p = round d
         else if choice.q > 1
-          choice.p = @round d * choice.q
-
-        @even = false if p? and choice.p isnt p
-        p ?= choice.p
+          choice.p = round d * choice.q
 
       return
 
-    fillCumulative: ->
-      return if @even # it's not worth the effort
+    isEven = (choices) ->
+      p = null
+      for choice in choices
+        return false if p? and choice.p isnt p
+        p ?= choice.p
+      return true
+
+    fillCumulative = (choices) ->
 
       cum = 0
-      for i in [0 .. @size - 2]
-        choice = @choices[i]
+      for i in [0 .. choices.length - 2] by 1
+        choice = choices[i]
         cum += choice.p
-        choice.cum = @round cum
+        choice.cum = round cum
 
       # to avoid rounding issues
-      @choices[@size - 1].cum = 1
+      choices[choices.length - 1].cum = 1
 
       return
 
-    round: (value) ->
+    round = (value) ->
       +(value.toFixed 5)
 
-  choose = (args...) ->
-    $choices = new $Choices args
+  $chooser = {}
+  choose = (mode, id, choices...) ->
+    $chooser[id] ?= new $Chooser mode, choices
     chooseExpand = ->
-      value = $choices.choose()
+      index = $chooser[id].choose()
+      value = choices[index] if index?
+      if typeof value is 'object'
+        value = value.value
       expand value
 
   compose = (args...) ->
@@ -251,7 +312,7 @@ module.exports = ->
 
   repeat = (value, range) ->
     repeatExpand = ->
-      max = range.min + $Choices.choose (range.max - range.min + 1)
+      max = range.min + $Chooser.choose (range.max - range.min + 1)
       (expand value for [1 .. max] by 1).join ''
 
   transform = (input, through) ->
