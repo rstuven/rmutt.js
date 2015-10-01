@@ -37,7 +37,7 @@
     "string-hash": "1.1.0"
   },
   "devDependencies": {
-    "blanket": "git://github.com/alex-seville/blanket.git",
+    "blanket": "1.1.7",
     "chai": "2.3.0",
     "coveralls": "2.11.4",
     "mocha": "2.3.3",
