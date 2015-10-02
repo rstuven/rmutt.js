@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "blanket": "git://github.com/alex-seville/blanket.git",
-    "chai": "2.3.0",
+    "chai": "3.3.0",
     "coveralls": "2.11.4",
     "mocha": "2.3.3",
     "mocha-lcov-reporter": "0.0.2",
