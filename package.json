@@ -1,6 +1,6 @@
 {
   "name": "rmutt",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "generates random text from context-sensitive grammars",
   "main": "index.js",
   "bin": {
