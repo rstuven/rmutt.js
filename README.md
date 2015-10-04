@@ -11,7 +11,12 @@
 
 That may sound a bit dry but can actually result in
 **a tremendous amount of fun** and several
-practical and not so practical applications. Any application where random combinations of symbols can provoke *amusing*, *aesthetic* or *inspirational* effects, can be implemented with relative ease using **rmutt.js**. Read more about it:
+practical and not so practical applications. Any application where random combinations of symbols can provoke *amusing*, *aesthetic* or *inspirational* effects, can be implemented with relative ease using **rmutt.js**. 
+
+**rmutt.js** is a reimplementation of the C project
+[rmutt](http://sourceforge.net/projects/rmutt/) by Joe Futrelle.
+
+Read more about it:
 
 * An [overview](docs/OVERVIEW.md) of **rmutt.js**.
 * The [user's guide](docs/GUIDE.md) to *rmutt grammars*.
