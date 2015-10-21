@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "blanket": "1.1.7",
-    "chai": "3.3.0",
+    "chai": "3.4.0",
     "coveralls": "2.11.4",
     "mocha": "2.3.3",
     "mocha-lcov-reporter": "1.0.0",
