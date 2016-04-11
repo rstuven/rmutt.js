@@ -32,7 +32,7 @@
   "dependencies": {
     "coffee-script": "1.10.0",
     "commander": "2.9.0",
-    "lodash": "3.10.1",
+    "lodash": "4.10.0",
     "pegjs": "0.9.0",
     "string-hash": "1.1.0"
   },
